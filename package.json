@@ -1,0 +1,13 @@
+{
+  "name": "kavach",
+  "version": "1.0.0",
+  "description": "A *Secure File Storage System* focused for organizations with sensitive data to securely store their files.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "cd frontend && npm start & cd backend && npm run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
