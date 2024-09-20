@@ -126,7 +126,3 @@ function sha256(message) {
 const message = "securefile";
 const hash = sha256(message);
 console.log("SHA-256 Hash: ", hash);
-
-
-console.log("SHA-256 Hash: ", sha256("securefiles"));
-console.log("SHA-256 Hash: ", sha256("Securefile"));
