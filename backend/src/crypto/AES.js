@@ -394,3 +394,13 @@ async function encryptWithIV(key, iv, message) {
     matrix[0].map((row) => row[colIndex])
   );
 }
+
+function AES_Encrypt(message) {
+  const key = generateKey();
+  const iv = crypto.randomBytes(16).toString("hex");
+  return encryptWithIV(key, iv, message);
+}
+
+module.exports = {
+  AES_Encrypt,
+}
