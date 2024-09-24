@@ -1,4 +1,5 @@
-const { sbox } = require("./SBox.js");
+const { sbox, invSbox } = require("./SBox.js");
+const { mul2, mul3, mul9, mul11, mul13, mul14 } = require("./LookupTables.js");
 const crypto = require("crypto");
 
 /**
@@ -165,6 +166,18 @@ function stringToHex(string) {
 
 /**
  *
+ * @param {*} hex
+ * @returns string equivalent of the hex
+ */
+function hexToString(hex) {
+  return hex
+    .match(/.{2}/g)
+    .map((byte) => String.fromCharCode(parseInt(byte, 16)))
+    .join("");
+}
+
+/**
+ *
  * @param {*} hexStr
  * @returns
  */
@@ -194,7 +207,6 @@ function addRoundKey(state, expandedKey, round) {
       );
     }
   }
-  // return state;
 }
 
 /**
@@ -207,6 +219,21 @@ function substituteBytes(state) {
       // Convert the hex value in state to decimal, then substitute using S-box
       const byte = parseInt(state[row][col], 16);
       state[row][col] = sbox[byte].toString(16).padStart(2, "0"); // Ensure 2-digit hex value
+    }
+  }
+}
+
+/**
+ * * This function is similar to the `substituteBytes` function in encryption
+ * * but uses the inverse S-box to reverse the substitution.
+ *
+ * @param {*} state The current state of the matrix during decryption.
+ */
+function inverseSubstituteBytes(state) {
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+      const byte = parseInt(state[row][col], 16);
+      state[row][col] = invSbox[byte].toString(16).padStart(2, "0");
     }
   }
 }
@@ -229,62 +256,26 @@ function shiftRows(state) {
 }
 
 /**
+ * * This function reverses the ShiftRows step by shifting the rows back to their original positions.
+ *
+ * @param {*} state The current state of the matrix during decryption.
+ */
+function inverseShiftRows(state) {
+  let shiftBy = 0;
+
+  state.forEach((row) => {
+    state[shiftBy] = rotateRight(row, 4 - shiftBy);
+    shiftBy++;
+  });
+}
+
+/**
  * * Diffusion layer of AES.
  * * A common `MIX_COLUMN_MATRIX` is used to ensure all the blocks have common diffusion.
  *
  * @param {*} state
  */
 function mixColumns(state) {
-  const mul2 = [
-    0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16,
-    0x18, 0x1a, 0x1c, 0x1e, 0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e,
-    0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e, 0x40, 0x42, 0x44, 0x46,
-    0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x52, 0x54, 0x56, 0x58, 0x5a, 0x5c, 0x5e,
-    0x60, 0x62, 0x64, 0x66, 0x68, 0x6a, 0x6c, 0x6e, 0x70, 0x72, 0x74, 0x76,
-    0x78, 0x7a, 0x7c, 0x7e, 0x80, 0x82, 0x84, 0x86, 0x88, 0x8a, 0x8c, 0x8e,
-    0x90, 0x92, 0x94, 0x96, 0x98, 0x9a, 0x9c, 0x9e, 0xa0, 0xa2, 0xa4, 0xa6,
-    0xa8, 0xaa, 0xac, 0xae, 0xb0, 0xb2, 0xb4, 0xb6, 0xb8, 0xba, 0xbc, 0xbe,
-    0xc0, 0xc2, 0xc4, 0xc6, 0xc8, 0xca, 0xcc, 0xce, 0xd0, 0xd2, 0xd4, 0xd6,
-    0xd8, 0xda, 0xdc, 0xde, 0xe0, 0xe2, 0xe4, 0xe6, 0xe8, 0xea, 0xec, 0xee,
-    0xf0, 0xf2, 0xf4, 0xf6, 0xf8, 0xfa, 0xfc, 0xfe, 0x1b, 0x19, 0x1f, 0x1d,
-    0x13, 0x11, 0x17, 0x15, 0x0b, 0x09, 0x0f, 0x0d, 0x03, 0x01, 0x07, 0x05,
-    0x3b, 0x39, 0x3f, 0x3d, 0x33, 0x31, 0x37, 0x35, 0x2b, 0x29, 0x2f, 0x2d,
-    0x23, 0x21, 0x27, 0x25, 0x5b, 0x59, 0x5f, 0x5d, 0x53, 0x51, 0x57, 0x55,
-    0x4b, 0x49, 0x4f, 0x4d, 0x43, 0x41, 0x47, 0x45, 0x7b, 0x79, 0x7f, 0x7d,
-    0x73, 0x71, 0x77, 0x75, 0x6b, 0x69, 0x6f, 0x6d, 0x63, 0x61, 0x67, 0x65,
-    0x9b, 0x99, 0x9f, 0x9d, 0x93, 0x91, 0x97, 0x95, 0x8b, 0x89, 0x8f, 0x8d,
-    0x83, 0x81, 0x87, 0x85, 0xbb, 0xb9, 0xbf, 0xbd, 0xb3, 0xb1, 0xb7, 0xb5,
-    0xab, 0xa9, 0xaf, 0xad, 0xa3, 0xa1, 0xa7, 0xa5, 0xdb, 0xd9, 0xdf, 0xdd,
-    0xd3, 0xd1, 0xd7, 0xd5, 0xcb, 0xc9, 0xcf, 0xcd, 0xc3, 0xc1, 0xc7, 0xc5,
-    0xfb, 0xf9, 0xff, 0xfd, 0xf3, 0xf1, 0xf7, 0xf5, 0xeb, 0xe9, 0xef, 0xed,
-    0xe3, 0xe1, 0xe7, 0xe5,
-  ];
-
-  const mul3 = [
-    0x00, 0x03, 0x06, 0x05, 0x0c, 0x0f, 0x0a, 0x09, 0x18, 0x1b, 0x1e, 0x1d,
-    0x14, 0x17, 0x12, 0x11, 0x30, 0x33, 0x36, 0x35, 0x3c, 0x3f, 0x3a, 0x39,
-    0x28, 0x2b, 0x2e, 0x2d, 0x24, 0x27, 0x22, 0x21, 0x60, 0x63, 0x66, 0x65,
-    0x6c, 0x6f, 0x6a, 0x69, 0x78, 0x7b, 0x7e, 0x7d, 0x74, 0x77, 0x72, 0x71,
-    0x50, 0x53, 0x56, 0x55, 0x5c, 0x5f, 0x5a, 0x59, 0x48, 0x4b, 0x4e, 0x4d,
-    0x44, 0x47, 0x42, 0x41, 0xc0, 0xc3, 0xc6, 0xc5, 0xcc, 0xcf, 0xca, 0xc9,
-    0xd8, 0xdb, 0xde, 0xdd, 0xd4, 0xd7, 0xd2, 0xd1, 0xf0, 0xf3, 0xf6, 0xf5,
-    0xfc, 0xff, 0xfa, 0xf9, 0xe8, 0xeb, 0xee, 0xed, 0xe4, 0xe7, 0xe2, 0xe1,
-    0xa0, 0xa3, 0xa6, 0xa5, 0xac, 0xaf, 0xaa, 0xa9, 0xb8, 0xbb, 0xbe, 0xbd,
-    0xb4, 0xb7, 0xb2, 0xb1, 0x90, 0x93, 0x96, 0x95, 0x9c, 0x9f, 0x9a, 0x99,
-    0x88, 0x8b, 0x8e, 0x8d, 0x84, 0x87, 0x82, 0x81, 0x9b, 0x98, 0x9d, 0x9e,
-    0x97, 0x94, 0x91, 0x92, 0x83, 0x80, 0x85, 0x86, 0x8f, 0x8c, 0x89, 0x8a,
-    0xab, 0xa8, 0xad, 0xae, 0xa7, 0xa4, 0xa1, 0xa2, 0xb3, 0xb0, 0xb5, 0xb6,
-    0xbf, 0xbc, 0xb9, 0xba, 0xfb, 0xf8, 0xfd, 0xfe, 0xf7, 0xf4, 0xf1, 0xf2,
-    0xe3, 0xe0, 0xe5, 0xe6, 0xef, 0xec, 0xe9, 0xea, 0xcb, 0xc8, 0xcd, 0xce,
-    0xc7, 0xc4, 0xc1, 0xc2, 0xd3, 0xd0, 0xd5, 0xd6, 0xdf, 0xdc, 0xd9, 0xda,
-    0x5b, 0x58, 0x5d, 0x5e, 0x57, 0x54, 0x51, 0x52, 0x43, 0x40, 0x45, 0x46,
-    0x4f, 0x4c, 0x49, 0x4a, 0x6b, 0x68, 0x6d, 0x6e, 0x67, 0x64, 0x61, 0x62,
-    0x73, 0x70, 0x75, 0x76, 0x7f, 0x7c, 0x79, 0x7a, 0x3b, 0x38, 0x3d, 0x3e,
-    0x37, 0x34, 0x31, 0x32, 0x23, 0x20, 0x25, 0x26, 0x2f, 0x2c, 0x29, 0x2a,
-    0x0b, 0x08, 0x0d, 0x0e, 0x07, 0x04, 0x01, 0x02, 0x13, 0x10, 0x15, 0x16,
-    0x1f, 0x1c, 0x19, 0x1a,
-  ];
-
   for (let col = 0; col < 4; col++) {
     let s0 = parseInt(state[0][col], 16);
     let s1 = parseInt(state[1][col], 16);
@@ -306,6 +297,71 @@ function mixColumns(state) {
 }
 
 /**
+ * * This function reverses the MixColumns transformation using inverse MixColumns logic.
+ * * AES decryption has a specific inverse MixColumn operation.
+ *
+ * @param {*} state The current state of the matrix during decryption.
+ */
+function inverseMixColumns(state) {
+  for (let col = 0; col < 4; col++) {
+    let s0 = parseInt(state[0][col], 16);
+    let s1 = parseInt(state[1][col], 16);
+    let s2 = parseInt(state[2][col], 16);
+    let s3 = parseInt(state[3][col], 16);
+
+    // Perform the matrix multiplication with the MixColumns constant matrix
+    let t0 = mul14[s0] ^ mul11[s1] ^ mul13[s2] ^ mul9[s3];
+    let t1 = mul9[s0] ^ mul14[s1] ^ mul11[s2] ^ mul13[s3];
+    let t2 = mul13[s0] ^ mul9[s1] ^ mul14[s2] ^ mul11[s3];
+    let t3 = mul11[s0] ^ mul13[s1] ^ mul9[s2] ^ mul14[s3];
+
+    // Update the state with the new values
+    state[0][col] = t0.toString(16).padStart(2, "0");
+    state[1][col] = t1.toString(16).padStart(2, "0");
+    state[2][col] = t2.toString(16).padStart(2, "0");
+    state[3][col] = t3.toString(16).padStart(2, "0");
+  }
+}
+
+/**
+ *
+ * @param {*} state
+ * @param {*} iv
+ * @returns
+ */
+function xorWithIV(state, iv) {
+  // XOR with IV or previous cipher block
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      state[i][j] = (parseInt(iv[i][j], 16) ^ parseInt(state[i][j], 16))
+        .toString(16)
+        .padStart(2, "0");
+    }
+  }
+  return state;
+}
+
+/**
+ *
+ * @param {*} hexString
+ * @returns unpadded text (original cipher text)
+ */
+function removePadding(hexString) {
+  const bytes = [];
+  for (let i = 0; i < hexString.length; i += 2) {
+    bytes.push(parseInt(hexString.substr(i, 2), 16));
+  }
+
+  const paddingLength = bytes[bytes.length - 1];
+  const unpaddedBytes = bytes.slice(0, bytes.length - paddingLength);
+
+  // Convert back to hex string
+  return unpaddedBytes
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
  * * This is the main encryption function. Each operation of AES happens from here.
  * * This method is responsible for encrypting the message and saving it to the file.
  *
@@ -324,24 +380,8 @@ function encryptWithIV(key, iv, message) {
   // Padding the message to 16 bytes.
   state = padTo16Bytes(state);
 
-  // Converting message to 4x4 array.
-  let matrix = [];
-  for (let itr = 0; itr < state.length / 32; itr++) {
-    matrix[itr] = [];
-    for (let i = 0; i < 4; i++) {
-      matrix[itr][i] = [];
-      for (let j = 0; j < 4; j++) {
-        const bytePosition = (j * 4 + i) * 2; // Column-major order
-        matrix[itr][i][j] = state
-          .slice(itr * 32, (itr + 1) * 32)
-          .slice(bytePosition, bytePosition + 2)
-          .padStart(2, "0");
-      }
-    }
-  }
-
   //converting iv to matrix
-  const ivMatrix = [];
+  let ivMatrix = [];
   for (let i = 0; i < 4; i++) {
     ivMatrix[i] = [];
     for (let j = 0; j < 4; j++) {
@@ -352,13 +392,77 @@ function encryptWithIV(key, iv, message) {
     }
   }
 
-  //XOR with IV
+  const blockCount = state.length / 32;
+  let cipherText = "";
+
+  // Process each block individually
+  for (let blockIndex = 0; blockIndex < blockCount; blockIndex++) {
+    // Extract a single block of the message
+    let block = state.slice(blockIndex * 32, (blockIndex + 1) * 32);
+
+    // Converting block to a 4x4 array (state matrix)
+    let matrix = [];
+    for (let i = 0; i < 4; i++) {
+      matrix[i] = [];
+      for (let j = 0; j < 4; j++) {
+        const bytePosition = (j * 4 + i) * 2; // Column-major order
+        matrix[i][j] = block
+          .slice(bytePosition, bytePosition + 2)
+          .padStart(2, "0");
+      }
+    }
+
+    /**
+     * Generating the expanded key.
+     */
+    const expanded_key = keyExpansion(key);
+
+    matrix = xorWithIV(matrix, ivMatrix);
+
+    /**
+     * Add Round Key stage
+     */
+    addRoundKey(matrix, expanded_key, 0);
+
+    for (let round = 1; round <= 14; round++) {
+      //Substitute Bytes
+      substituteBytes(matrix);
+      //Shift Rows
+      shiftRows(matrix);
+      //Mix Columns
+      if (round !== 14) mixColumns(matrix);
+      //Add Round Key
+      addRoundKey(matrix, expanded_key, round);
+    }
+
+    // appending to the ciphertext
+    cipherText += matrix.flat().join("");
+
+    //updating iv with latest cipher matrix
+    ivMatrix = matrix;
+  }
+  return cipherText;
+}
+
+/**
+ *
+ * @param {*} key
+ * @param {*} iv
+ * @param {*} message
+ * @returns the decrypted message.
+ */
+function decryptWithIV(key, iv, cipherMessage) {
+  const blockCount = cipherMessage.length / 32;
+  let plaintext = "";
+
+  //converting iv to matrix
+  let ivMatrix = [];
   for (let i = 0; i < 4; i++) {
+    ivMatrix[i] = [];
     for (let j = 0; j < 4; j++) {
-      matrix[0][i][j] = (
-        parseInt(matrix[0][i][j], 16) ^ parseInt(ivMatrix[i][j], 16)
-      )
-        .toString(16)
+      const bytePosition = (j * 4 + i) * 2;
+      ivMatrix[i][j] = iv
+        .slice(bytePosition, bytePosition + 2)
         .padStart(2, "0");
     }
   }
@@ -368,34 +472,59 @@ function encryptWithIV(key, iv, message) {
    */
   expanded_key = keyExpansion(key);
 
-  /**
-   * Add Round Key stage
-   */
-  addRoundKey(matrix[0], expanded_key, 0);
+  // Decrypt each block of ciphertext
+  for (let blockIndex = 0; blockIndex < blockCount; blockIndex++) {
+    // Extract a single block of the ciphertext
+    const block = cipherMessage.slice(blockIndex * 32, (blockIndex + 1) * 32);
 
-  for (let round = 1; round < 14; round++) {
-    //Substitute Bytes
-    substituteBytes(matrix[0]);
-    //Shift Rows
-    shiftRows(matrix[0]);
-    //Mix Columns
-    mixColumns(matrix[0]);
-    //Add Round Key
-    addRoundKey(matrix[0], expanded_key, round);
+    // Convert the block to a 4x4 matrix
+    let matrix = [];
+    for (let row = 0; row < 4; row++) {
+      matrix[row] = [];
+      for (let cols = 0; cols < 4; cols++) {
+        matrix[row][cols] = block.slice(
+          (row * 4 + cols) * 2,
+          (row * 4 + cols) * 2 + 2
+        );
+      }
+    }
+
+    /**
+     * Add Round Key stage
+     */
+    addRoundKey(matrix, expanded_key, 14);
+
+    for (let round = 13; round >= 0; round--) {
+      //Inverse Shift Rows
+      inverseShiftRows(matrix);
+      //Inverse Substitute Bytes
+      inverseSubstituteBytes(matrix);
+      //Add Round Key
+      addRoundKey(matrix, expanded_key, round);
+      // Skip MixColumns for the final round
+      if (round !== 0) inverseMixColumns(matrix);
+    }
+
+    // XOR the decrypted block with the IV or previous ciphertext block
+    matrix = xorWithIV(matrix, ivMatrix);
+
+    // Convert the state matrix back to a hex string (plaintext)
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        plaintext += matrix[j][i];
+      }
+    }
+
+    // Update IV with the current ciphertext block for the next iteration
+    for (let i = 0; i < 4; i++) {
+      ivMatrix[i] = [];
+      for (let j = 0; j < 4; j++) {
+        ivMatrix[i][j] = block.slice((i * 4 + j) * 2, (i * 4 + j) * 2 + 2);
+      }
+    }
   }
 
-  //Substitute Bytes
-  substituteBytes(matrix[0]);
-  //Shift Rows
-  shiftRows(matrix[0]);
-  //Add Round Key
-  addRoundKey(matrix[0], expanded_key, 14);
-
-  const transposed = matrix[0].map((_, colIndex) =>
-    matrix[0].map((row) => row[colIndex])
-  );
-
-  return transposed.flat().join("");
+  return removePadding(plaintext);
 }
 
 /**
@@ -408,10 +537,34 @@ function encryptWithIV(key, iv, message) {
 function AES_Encrypt(message) {
   const key = generateKey();
   const iv = crypto.randomBytes(16).toString("hex");
+  const ciphermsg = encryptWithIV(key, iv, message);
 
-  return { key, iv, encryptedMessage: encryptWithIV(key, iv, message) };
+  return { key, iv, ciphermsg };
 }
+
+/**
+ * * Decrypts the message using AES decryption.
+ * * The method uses the key and IV generated during encryption.
+ *
+ * @param {*} key
+ * @param {*} iv
+ * @param {*} encryptedMessage
+ * @returns The decrypted message.
+ */
+function AES_Decrypt(key, iv, encryptedMessage) {
+  decipheredMessage = decryptWithIV(key, iv, encryptedMessage);
+  return hexToString(decipheredMessage);
+}
+
+//dummy message - remove this later
+const { key, iv, ciphermsg } = AES_Encrypt(
+  "Hi there, This is aashish speaking to the world."
+);
+
+const plaintext = AES_Decrypt(key, iv, ciphermsg);
+console.log(ciphermsg + "\n" + plaintext);
 
 module.exports = {
   AES_Encrypt,
+  AES_Decrypt,
 };
