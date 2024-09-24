@@ -314,7 +314,7 @@ function mixColumns(state) {
  * @param {*} message
  * @returns This method returns the key.
  */
-async function encryptWithIV(key, iv, message) {
+function encryptWithIV(key, iv, message) {
   /**
    * * The message is converted hex, padded and then to a 4x4 matrix.
    */
@@ -393,11 +393,14 @@ async function encryptWithIV(key, iv, message) {
   const transposed = matrix[0].map((_, colIndex) =>
     matrix[0].map((row) => row[colIndex])
   );
+  
+  return transposed.flat().join("");
 }
 
 function AES_Encrypt(message) {
   const key = generateKey();
   const iv = crypto.randomBytes(16).toString("hex");
+  
   return encryptWithIV(key, iv, message);
 }
 
