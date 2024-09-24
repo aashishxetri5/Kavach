@@ -312,7 +312,8 @@ function mixColumns(state) {
  * @param {*} key
  * @param {*} iv
  * @param {*} message
- * @returns This method returns the key.
+ *
+ * @returns This method returns the encrypted message of length 128-bit.
  */
 function encryptWithIV(key, iv, message) {
   /**
@@ -393,17 +394,24 @@ function encryptWithIV(key, iv, message) {
   const transposed = matrix[0].map((_, colIndex) =>
     matrix[0].map((row) => row[colIndex])
   );
-  
+
   return transposed.flat().join("");
 }
 
+/**
+ * * Encrypts the message using AES encryption.
+ * * The method generates a key and an IV for encryption.
+ *
+ * @param {*} message
+ * @returns The encrypted message.
+ */
 function AES_Encrypt(message) {
   const key = generateKey();
   const iv = crypto.randomBytes(16).toString("hex");
-  
-  return encryptWithIV(key, iv, message);
+
+  return { key, iv, encryptedMessage: encryptWithIV(key, iv, message) };
 }
 
 module.exports = {
   AES_Encrypt,
-}
+};
