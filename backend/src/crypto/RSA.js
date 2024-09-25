@@ -7,6 +7,7 @@ const buf = Buffer.from('buffer');
 
 // Import module from AES.js
 // const { key } = require('./AES.js');
+const key = "a68fbc00805a91b4bf3899a6b69749dcdb10a1ed495746a483a62b61080191d6";
 
 const e = BigInt(65537); // Common public exponent
 
