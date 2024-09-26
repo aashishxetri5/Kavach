@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const session = require("express-session");
+const flash = require('connect-flash');
 const MongoStore = require("connect-mongo");
 const fileUpload = require("express-fileupload");
 require("dotenv").config(); // Load environment variables from .env file
@@ -48,6 +49,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware for flash messages
+app.use(flash());
+
 // Middleware to handle file uploads
 app.use(fileUpload());
 
@@ -56,11 +60,11 @@ const routes = require("./src/routes");
 app.use("/", routes);
 
 // Middleware for handling 404 errors
-app.use(function (err, req, res, next) {
-  res.status(404).render("pageNotFound");
-});
+// app.use(function (err, req, res, next) {
+//   res.status(404).render("pageNotFound");
+// });
 
-// Middleware for handling 500 errors
-app.use(function (err, req, res, next) {
-  res.status(500).render("serverError");
-});
+// // Middleware for handling 500 errors
+// app.use(function (err, req, res, next) {
+//   res.status(500).render("serverError");
+// });

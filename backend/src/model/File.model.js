@@ -11,13 +11,17 @@ const fileSchema = new mongoose.Schema({
     type: String,
   },
   owner: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
   encryptedKey: {
     type: String,
     required: false,
+  },
+  iv: {
+    type: String,
+    required: true,
   },
   hash: {
     type: String,
