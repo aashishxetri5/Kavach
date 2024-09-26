@@ -564,7 +564,4 @@ const { key, iv, ciphermsg } = AES_Encrypt(
 const plaintext = AES_Decrypt(key, iv, ciphermsg);
 console.log(ciphermsg + "\n" + plaintext);
 
-module.exports = {
-  AES_Encrypt,
-  AES_Decrypt,
-};
+module.exports = {AES_Encrypt, AES_Decrypt};
