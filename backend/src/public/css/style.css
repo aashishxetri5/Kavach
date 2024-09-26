@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+    outline: none;
+    border: none;
+    box-sizing: border-box;
+    text-decoration: none;
+}
+
+:root {
+    --bg-color: #f3f4f6;
+    --primary-color: #682bd7;
+    --text: #4b5563;
+    --blog-text: #222;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Roboto', sans-serif;
+}
+
+.lw > .inner-wrapper {
+    padding: 5px 7px;
+    font-size: .8rem;
+}
+
+.lw, .lw > .inner-wrapper, #login-f {
+    display: flex;
+    flex-direction: column;
+}
+
+.lw {
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.top {
+    margin-bottom: 15px;
+}
+
+#login-f {
+    justify-content: flex-start;
+}
+
+.form, #login-f{
+    background-color: #fff;
+    padding: 5px;
+}
+
+.back-btn {
+    line-height: 40px;
+    padding: 0px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    color: var(--text);
+    background-color: transparent;
+}
+
+.back-btn:hover {
+    transition: .25s ease-in-out;
+    background-color: #e5e7eb;
+}
+
+.form {
+    width: 350px;
+    padding: 26px 19px;
+    box-shadow: 0px 2px 7px rgb(0 0 0 / 20%);
+    border-radius: 7px;
+}
+
+.form h1{
+    text-align: center;
+}
+
+label {
+    color: var(--text);
+    line-height: 30px;
+    padding-top: 10px;
+}
+
+.lp-inp {
+    height: 35px;
+    padding: 1px 10px;
+    border: 1px solid #d8dde5;
+    font-size: .875rem;
+    border-radius: .359rem;
+}
+
+.login-btn {
+    height: 40px;
+    width: 100%;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin: 20px auto 10px;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.login-btn:hover {
+    transition: .25s linear ease-in-out;
+    background-color: #6421e1;
+}
+
+.pwd-reset {
+    font-size: .875rem;
+    padding: 15px 5px 0px;
+}
+
+.forgot-pwd {
+    color: var(--primary-color);
+}
+
+.forgot-pwd:hover {
+    transition: .45s linear;
+    text-decoration: underline;
+    color: #6421e1;
+}
+

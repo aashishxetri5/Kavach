@@ -26,11 +26,11 @@ const userSchema = new mongoose.Schema({
   },
   publicKey: {
     type: String,
-    required: true,
+    required: false,
   },
   privateKey: {
     type: String,
-    required: true,
+    required: false,
   },
   twoFactorEnabled: {
     type: Boolean,

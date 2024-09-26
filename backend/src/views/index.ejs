@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kavach</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        text-decoration: none;
+        font-family: "Google Sans Display", Arial, Helvetica, sans-serif;
+      }
+
+      ul {
+        list-style-type: none;
+      }
+
+      .nav {
+        height: 70px;
+        width: 100vw;
+        padding-left: 30px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+      }
+
+      .nav-logo {
+        height: 50px;
+        width: 50px;
+        margin-left: 30px;
+      }
+
+      .nav-logo img {
+        height: 100%;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
+      }
+
+      .hero-content {
+        height: 85vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 64px;
+      }
+
+      .hero-heading {
+        font-size: 60px;
+        line-height: 72px;
+        color: #202124;
+        font-weight: 400;
+        letter-spacing: -0.5px;
+      }
+
+      .hero-description p {
+        font-size: 20px;
+        line-height: 28px;
+        color: #5f6368;
+        font-weight: 400;
+        margin-top: 24px;
+      }
+
+      .cta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 36px;
+        color: #5f6368;
+      }
+
+      .hero-btn {
+        margin: 20px 0;
+        border-radius: 5px;
+        padding: 12px 20px 12px 20px;
+        background-color: #1a73e8;
+        color: #fff;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav">
+      <div class="nav-logo">
+        <img class="" src="/img/kavach-logo.png" alt="Kavach Logo" />
+      </div>
+      <div
+        class=""
+        style="font-family: 'Lucida Sans', 'Lucida Sans Regular', sans-serif"
+      >
+        <h3>KAVACH</h3>
+      </div>
+    </div>
+
+    <div class="hero-content">
+      <div class="left">
+        <h1 class="hero-heading">Easy and secure access to your content</h1>
+        <div class="hero-description">
+          <p class="">
+            Manage your organization's files and folders securely becoming the
+            sole owner of your data.
+          </p>
+        </div>
+        <div class="cta">
+          Already a user?
+          <div>
+            <a href="/login" class="hero-btn">Login</a>
+          </div>
+        </div>
+      </div>
+      <div class="right">
+        <img src="/img/signup.svg" alt="" />
+      </div>
+    </div>
+  </body>
+</html>
