@@ -1,171 +1,124 @@
-// Import the library
-const cryptoUtils = require('bigint-crypto-utils');
-const crypto = require('crypto'); // Required for OAEP padding
-const { Buffer } = require ('node:buffer'); // Required for buffering
+const crypto = require('crypto');
+const NodeRSA = require('node-rsa');
+const AES_Encrypt = require('./AES.js');
 
-const buf = Buffer.from('buffer');
-
-// Import module from AES.js
-// const { key } = require('./AES.js');
-
-const e = BigInt(65537); // Common public exponent
-
-// Create a class to handle prime generation
-class GenerateKeys {
+// RSA2048 class to generate Prime Numbers, Calculate Product and Totient
+class RSA2048 {
     constructor() {
-        this.p = BigInt(0);        // Prime number p
-        this.q = BigInt(0);        // Prime number q
+        this.keySize = 2048;
+        this.e = 65537n; // Common public exponent
+        this.generateKeys();
     }
 
-    // Method to generate a random prime number of given bits synchronously
-    generateRandomPrime(bits) {
-        return cryptoUtils.primeSync(bits); // Synchronous method to generate a prime number
-    }
-
-    // Method to generate both primes and return them
+    // Generate RSA keys using the library
     generateKeys() {
-        this.p = this.generateRandomPrime(1024);
-        this.q = this.generateRandomPrime(1024);
-        return { p: this.p, q: this.q }; // Return an object containing p and q
+        const key = new NodeRSA({ b: this.keySize });
+        
+        // Extract prime numbers P and Q
+        const keyData = key.exportKey('components');
+        this.P = BigInt('0x' + keyData.p.toString('hex')); // Convert buffer to BigInt
+        this.Q = BigInt('0x' + keyData.q.toString('hex')); // Convert buffer to BigInt
+        this.N = this.P * this.Q;
+        this.totient = (this.P - 1n) * (this.Q - 1n);
     }
+
 }
 
-// Define KeyManager class that inherits from GenerateKeys
-class KeyManager extends GenerateKeys {
+// KeyManager class is created to select Public Key and Private Key
+class KeyManager extends RSA2048 {
     constructor() {
-        super(); // Call the parent constructor
+        super();
+        this.d = this.calculatePrivateKey();
     }
 
-    // Method to calculate the product of p and q
-    calculateProduct() {
-        const { p, q } = this.generateKeys(); // Get p and q from the generateKeys method
-        const n = p * q;
-        return n;
-    }
-
-    // Method to calculate the totient
-    calculateTotient() {
-        const { p, q } = this; // Access p and q from the current instance
-        const phi_n = (p - BigInt(1)) * (q - BigInt(1));
-        return phi_n;
-    }
-
-    // Method to select the public key 'e' such that gcd(e, φ(n)) = 1
-    selectPublicKey() {
-        const phi_n = this.calculateTotient();
-        if (this.gcd(e, phi_n) === BigInt(1)) {
-            return e;
-        } else {
-            return null;
-        }
-    }
-
-    // Helper method to calculate the Greatest Common Divisor (GCD) for Public Key
-    gcd(a, b) {
-        while (b !== BigInt(0)) {
-            const temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
-
-    // Method to select the private key 'd' such that (d % phi_n + phi_n) % phi_n
-    selectPrivateKey() {
-        const phi_n = this.calculateTotient(); // Example totient
-
-        const { gcd, x: d } = this.extendedGCD(e, phi_n);
-
-        if (gcd === BigInt(1)) { // e and phi(n) are coprime
-            const positiveD = (d % phi_n + phi_n) % phi_n; // Ensure d is positive
-            return positiveD;
-        } else {
-            return null;
-        }
-    }
-
-    // Helper method to calculate Extended GCD for Private Key
+    // Extended Euclidean Algorithm to find modular inverse of e
     extendedGCD(a, b) {
-        if (a === BigInt(0)) {
-            return { gcd: b, x: BigInt(0), y: BigInt(1) };
+        if (b === 0n) {
+            return { gcd: a, x: 1n, y: 0n };
         }
-        const { gcd, x: x1, y: y1 } = this.extendedGCD(b % a, a);
-        const x = y1 - (b / a) * x1;
-        const y = x1;
-        return { gcd, x, y };
+        
+        const { gcd, x, y } = this.extendedGCD(b, a % b);
+        return { gcd: gcd, x: y, y: x - (a / b) * y };
     }
+
+    // Calculate the private key 'd' using e and the totient
+    calculatePrivateKey() {
+        const { gcd, x } = this.extendedGCD(this.e, this.totient);
+        if (gcd !== 1n) {
+            throw new Error("e and totient are not coprime, unable to calculate private key.");
+        }
+        
+        // Ensure x is positive
+        return (x % this.totient + this.totient) % this.totient;
+    }
+
 }
 
+// Encryption and Decryption class inheriting from KeyManager
 class Encryption_and_Decryption extends KeyManager {
     constructor() {
         super();
     }
 
-    // Method to pad the AES key using OAEP padding
-    padKey(aesKey) {
-        const keyBuffer = Buffer.from(aesKey, 'utf-8');
-        const keyLength = 256 / 8; // Key length in bytes for AES-256
-        const label = Buffer.from(''); // Optional label
+    // Encrypt the AES key using the RSA public key
+    encryptAESKey(aesKey) {
+        const aesKeyBigInt = BigInt('0x' + aesKey.toString('hex')); // Convert AES key to BigInt
+        const ciphertext = this.modularExponentiation(aesKeyBigInt, this.e, this.N);
+        return ciphertext;
+    }
 
-        // Determine the length for the padding
-        const paddedData = crypto.createHash('sha256').update(keyBuffer).digest();
-        const db = Buffer.concat([Buffer.alloc(keyLength - paddedData.length - 2), paddedData, Buffer.from([0x01])]);
+    // Decrypt the AES key using the RSA private key
+    decryptAESKey(ciphertext) {
+        const decrypted = this.modularExponentiation(ciphertext, this.d, this.N);
+        const hexDecrypted = decrypted.toString(16).padStart(64, '0'); // Convert back to hex
+        return Buffer.from(hexDecrypted, 'hex');
+    }
 
-        // Create a mask
-        const hash = crypto.createHash('sha256').update(label).digest();
-        const mask = Buffer.alloc(db.length);
-        for (let i = 0; i < db.length; i++) {
-            mask[i] = hash[i % hash.length] ^ db[i];
+    // Perform modular exponentiation: (base ** exp) % mod
+    modularExponentiation(base, exp, mod) {
+        let result = 1n;
+        base = base % mod;
+
+        while (exp > 0n) {
+            if (exp % 2n === 1n) {
+                result = (result * base) % mod;
+            }
+            exp = exp >> 1n;
+            base = (base * base) % mod;
         }
 
-        // Final OAEP padded key
-        return Buffer.concat([Buffer.from([0x00]), mask]);
+        return result;
     }
 
-    RSA_Encrypt() {
-        // Apply OAEP padding to the AES key
-        const paddedKey = this.padKey(key);
 
-        // Encrypt using RSA
-        const n = this.calculateProduct(); // Get n
-        const paddedKeyBigInt = BigInt('0x' + paddedKey); // Convert to BigInt
-        const encryptedAesKey = (paddedKeyBigInt ** e) % n; // RSA Encryption
-        const ciphertext = encryptedAesKey.toString(16);
-        console.log("Encrypted AES Key using RSA (Hex): ", ciphertext);
-    }
+    // Display encryption and decryption results
+    demonstrateEncryptionDecryption() {
+        // Given AES key
+        const message = "Hi there, This is aashish speaking to the world.";
+        const { key, iv, ciphermsg } = AES_Encrypt(message);
+        const aesKey = Buffer.from(key, 'hex');
 
-    RSA_Decrypt() {
-        const n = this.calculateProduct(); // Get n
-        const d = this.selectPrivateKey(); // Select the private key 'd'
-        const encryptedAesKey = this.encryptedAesKey; // Retrieve the encrypted key
-    
-        // RSA Decryption
-        const decryptedAesKeyBigInt = (encryptedAesKey ** d) % n;
+        console.log(`Original AES Key: ${aesKey.toString('hex')}`);
         
-        // Convert the decrypted key from BigInt to Buffer
-        const decryptedKeyBuffer = Buffer.from(decryptedAesKeyBigInt.toString(16), 'hex');
-    
-        // OAEP Padding Removal
-        const hLen = 32; // Length of the SHA-256 hash output
-        const seed = decryptedKeyBuffer.slice(0, hLen); // Masked seed
-        const maskedDB = decryptedKeyBuffer.slice(hLen); // Masked data block
-    
-        // Unmasking the data block
-        const hash = crypto.createHash('sha256').update('').digest(); // Generate SHA-256 hash
-        const originalDataBlock = Buffer.alloc(maskedDB.length);
+        // Display the AES key using RSA public key
+        const ciphertext = this.encryptAESKey(aesKey);
+        console.log(`\nRSA Encrypted AES Key (Ciphertext): ${ciphertext}`);
         
-        for (let i = 0; i < maskedDB.length; i++) {
-            originalDataBlock[i] = maskedDB[i] ^ hash[i % hash.length]; // Unmask the data block
+        // Display the AES key using RSA private key
+        const decryptedKey = this.decryptAESKey(ciphertext);
+        console.log(`\nDecrypted AES Key: ${decryptedKey.toString('hex')}`);
+        
+        // Verification
+        if (decryptedKey.equals(aesKey)) {
+            console.log("\nDecryption successful: AES keys match!");
+        } else {
+            console.log("\nDecryption failed: AES keys do not match.");
         }
-    
-        // Extract the original AES key (after the first occurrence of 0x01)
-        const originalAesKey = originalDataBlock.slice(originalDataBlock.indexOf(1) + 1);
-        console.log("Decrypted AES Key: ", originalAesKey.toString('utf-8')); // Output the original AES key
     }
-    
 }
 
+// Create an instance of Encryption_and_Decryption and demonstrate encryption/decryption
 const show = new Encryption_and_Decryption();
-show.RSA_Encrypt;
-show.RSA_Decrypt;
+show.demonstrateEncryptionDecryption();
 
+module.exports = Encryption_and_Decryption;
