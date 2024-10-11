@@ -6,6 +6,12 @@ const {
   getExtensionFromMimeType,
 } = require("../utils/EquivalentMimeTypes.util.js");
 
+/**
+ * 
+ * @param {*} file 
+ * @param {*} loggedInUser 
+ * @returns 
+ */
 exports.uploadFile = async (file, loggedInUser) => {
   const path = `uploads/${loggedInUser.username}`;
 
@@ -39,6 +45,11 @@ exports.uploadFile = async (file, loggedInUser) => {
   return fileData;
 };
 
+/**
+ * 
+ * @param {*} file 
+ * @param {*} cipheredFileData 
+ */
 function saveEncryptedFile(file, cipheredFileData) {
   fs.writeFile(
     `${file.filePath}/${file.filename}`,
