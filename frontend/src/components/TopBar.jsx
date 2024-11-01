@@ -131,8 +131,8 @@ const TopBar = () => {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <Link className="dropdown-item py-2" to="#">
-                  Separated link
+                <Link className="dropdown-item py-2" to="/logout">
+                  Logout
                 </Link>
               </li>
             </ul>
