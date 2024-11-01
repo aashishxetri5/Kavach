@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 import Spinner from "../components/Spinner";
 
@@ -13,15 +14,29 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem("token")) {
-      window.location.href = "/";
-    } else {
-      const timeoutId = setTimeout(() => {
-        setLoading(false); // Set loading to false after the delay
-      }, 700); // .7 seconds delay. can be removed only for testing
+    const timeoutId = setTimeout(() => {
+      setLoading(false); // Set loading to false after the delay
+    }, 700); // .7 seconds delay. can be removed only for testing
 
-      return () => clearTimeout(timeoutId);
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      // Check for token expiry
+      try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+
+        if (decodedToken.exp < currentTime) {
+          localStorage.removeItem("token");
+        } else {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error in getting token:", error);
+        localStorage.removeItem("token");
+      }
     }
+    return () => clearTimeout(timeoutId);
   }, [navigate]);
 
   const handleFormSubmit = async (e) => {
@@ -40,12 +55,11 @@ const LoginPage = () => {
       if (success) {
         localStorage.setItem("token", token);
         setSuccess(message);
+        console.log("Login Success:", success);
         navigate("/");
       } else {
         setError(message);
       }
-
-      console.log("Login Response:", response.data.result);
     } catch (error) {
       console.error("Error in handleFormSubmit:", error);
       setError("Something went wrong!! Try again.");
