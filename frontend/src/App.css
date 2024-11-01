@@ -1,3 +1,11 @@
+:root {
+  --primary-color: #1b3a57;
+  --secondary-color: #2ecc71;
+  --tertiary-color: #75a3c5;
+  --quaternary-color: #e74c3c;
+  --quinary-color: #f0f3f4;
+}
+
 .App {
   text-align: center;
 }
@@ -35,4 +43,71 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+::-webkit-scrollbar{
+  width: 7px;
+}
+
+::-webkit-scrollbar-thumb{
+  background-color: var(--secondary-color);
+  border-radius: 10px;
+}
+
+body::-webkit-scrollbar{
+  display: none;
+}
+
+.h-custom-screen{
+  height: calc(100vh - 73px);
+}
+
+.primaryBtn {
+  background-color: var(--primary-color) !important;
+  color: var(--quinary-color) !important;
+}
+
+.secondaryBtn {
+  background-color: var(--secondary-color) !important;
+  color: var(--quinary-color) !important;
+}
+
+.tertiaryBtn {
+  background-color: var(--quinary-color) !important;
+  color: var(--quinary-color) !important;
+}
+
+.quaternaryBtn {
+  background-color: var(--quaternary-color) !important;
+  color: var(--quinary-color) !important;
+}
+
+.quinaryBtn {
+  background-color: var(--quinary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.userProfile.dropdown-toggle::after {
+  display: none;
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+  background-color: var(--quaternary-color) !important;
+  color: var(--quinary-color) !important;
+}
+
+.dropdown-item:hover {
+  background-color: var(--quaternary-color) !important;
+  color: var(--quinary-color) !important;
+}
+
+.form-control:focus {
+  border-color: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.directoryCard:hover {
+  background-color: #fafafa;
 }
