@@ -18,11 +18,9 @@ const LoginPage = () => {
     } else {
       const timeoutId = setTimeout(() => {
         setLoading(false); // Set loading to false after the delay
-      }, 2000); // 2 seconds delay for testing
+      }, 700); // .7 seconds delay. can be removed only for testing
 
       return () => clearTimeout(timeoutId);
-
-      // setLoading(false);
     }
   }, [navigate]);
 
