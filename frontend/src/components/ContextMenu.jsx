@@ -1,7 +1,7 @@
 const ContextMenu = () => {
   return (
     <div className="d-flex justify-content-between align-items-center ms-auto">
-      <div class="dropdown ms-auto">
+      <div className="dropdown ms-auto">
         <svg
         className="cursor-pointer"
           width="20"
@@ -17,15 +17,15 @@ const ContextMenu = () => {
             fill="black"
           />
         </svg>
-        <ul class="dropdown-menu cursor-pointer user-select-none">
+        <ul className="dropdown-menu cursor-pointer user-select-none">
           <li>
-            <span class="dropdown-item">
-              <i class="fas fa-pen mx-2"></i> Update
+            <span className="dropdown-item">
+              <i className="fas fa-pen mx-2"></i> Update
             </span>
           </li>
           <li>
-            <span class="dropdown-item">
-              <i class="fas fa-trash mx-2"></i> Delete
+            <span className="dropdown-item">
+              <i className="fas fa-trash mx-2"></i> Delete
             </span>
           </li>
         </ul>

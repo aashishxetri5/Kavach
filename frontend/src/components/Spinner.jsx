@@ -4,7 +4,7 @@ import "../styles/spinner.css";
 const Spinners = () => {
   return (
     <div className="h-screen flex justify-center items-center">
-      <div class="lds-ellipsis">
+      <div className="lds-ellipsis">
         <div></div>
         <div></div>
         <div></div>

@@ -113,27 +113,27 @@ const TopBar = () => {
             </div>
             <ul className="dropdown-menu">
               <li>
-                <a className="dropdown-item py-2" href="#">
+                <Link className="dropdown-item py-2" to="#">
                   Action
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="dropdown-item py-2" href="#">
+                <Link className="dropdown-item py-2" to="#">
                   Another action
-                </a>
+                </Link>
               </li>
               <li>
-                <a className="dropdown-item py-2" href="#">
+                <Link className="dropdown-item py-2" to="#">
                   Something else here
-                </a>
+                </Link>
               </li>
               <li>
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <a className="dropdown-item py-2" href="#">
+                <Link className="dropdown-item py-2" to="#">
                   Separated link
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

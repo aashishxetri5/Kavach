@@ -10,7 +10,7 @@ const FileCards = () => {
 
   return (
     <div
-      className="card px-0 h-48 border-0 shadow-xl rounded-2xl"
+      className="card px-0 h-48 border-0 shadow-xl rounded-2xl cursor-pointer"
       style={{ width: "calc(20% - 1.2rem)" }}
     >
       <div

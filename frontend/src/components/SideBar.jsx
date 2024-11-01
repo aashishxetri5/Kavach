@@ -106,7 +106,7 @@ const SideBar = () => {
       <aside className="menu mt-4 text-lg">
         <ul className="list-style-none">
           <li className="linkitem">
-            <Link to="/home">
+            <Link to="/">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={24}

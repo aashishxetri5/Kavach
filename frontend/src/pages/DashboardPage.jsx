@@ -20,7 +20,7 @@ const DashboardPage = () => {
         <SideBar />
         <div className="content bg-white px-3 rounded w-4/5 mt-1 px-2 h-custom-screen overflow-y-scroll pb-8">
           <Routes>
-            <Route path="/home" exact Component={Home} />
+            <Route path="/" exact Component={Home} />
             <Route path="/files" exact Component={AllFiles} />
             <Route path="/directories" exact Component={Directories} />
             <Route path="/shared" exact Component={Shared} />
