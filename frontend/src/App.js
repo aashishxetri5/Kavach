@@ -5,6 +5,8 @@ import "./styles/output.css";
 import DashboardPage from "./pages/DashboardPage";
 import ErrorBoundary from "./utils/ErrorBoundary.utils";
 import LoginPage from "./pages/LoginPage";
+import { NotFound } from "./components/NotFound";
+import { ServerError } from "./components/ServerError";
 
 function App() {
   return (
@@ -13,6 +15,9 @@ function App() {
         <Routes>
           <Route path="/*" element={<DashboardPage />} />
           <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/NotFound" Component={NotFound} />
+          <Route path="/ServerError" Component={ServerError} />
         </Routes>
       </Router>
     </ErrorBoundary>
