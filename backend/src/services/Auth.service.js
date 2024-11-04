@@ -28,7 +28,7 @@ const validateUserCredentials = async (email, password) => {
       {
         userId: user._id,
         fullname: user.fullname,
-        email: user.email,
+        username: user.username,
         role: user.role,
       },
       process.env.JWT_SECRET,
