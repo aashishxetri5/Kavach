@@ -1,13 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
+import FileUploadModal from "./FileUploadModal";
 
 const SideBar = () => {
-  const [isChecked, setIsChecked] = useState(true);
-
-  const handleCheckboxChange = () => {
-    setIsChecked((prev) => !prev);
-  };
-
   return (
     <div className="sidemenu h-custom-screen pt-5 rounded mt-1 w-1/5">
       <div className="newbtn">
@@ -31,77 +26,7 @@ const SideBar = () => {
         </button>
       </div>
 
-      <div
-        className="modal fade"
-        id="newFileUpload"
-        data-bs-backdrop="static"
-        data-bs-keyboard="false"
-        tabIndex="-1"
-        aria-labelledby="newFileUploadLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="newFileUploadLabel">
-                Upload New File
-              </h1>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-
-            <form action="/newfile" method="post" encType="multipart/form-data">
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label htmlFor="file" className="form-label">
-                    Upload File to Encrypt
-                  </label>
-                  <input
-                    type="file"
-                    className="form-control"
-                    id="file"
-                    name="file"
-                    accept=".pdf, .txt"
-                    required
-                  />
-                </div>
-
-                <div
-                  className="btn-group"
-                  role="group"
-                  aria-labelledby="Basic checkbox toggle button group"
-                >
-                  <input
-                    type="checkbox"
-                    className="btn-check"
-                    id="encryptionCheck"
-                    autoComplete="off"
-                    checked={isChecked}
-                    onChange={handleCheckboxChange}
-                  />
-                  <label
-                    className="btn btn-outline-danger"
-                    style={{ fontSize: "0.75rem", padding: "5px" }}
-                    htmlFor="encryptionCheck"
-                  >
-                    Encrypted
-                  </label>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="submit" className="btn primaryBtn">
-                  Upload
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+      <FileUploadModal />
 
       <aside className="menu mt-4 text-lg">
         <ul className="list-style-none">
