@@ -17,8 +17,6 @@ const FileUploadModal = () => {
     if (file) {
       console.log("file", file);
     }
-
-    return () => {setFile(null)};
   }, [file]);
 
   const handleFileUpload = async (e) => {
@@ -28,10 +26,9 @@ const FileUploadModal = () => {
 
     if (file) {
       formData.append("file", file);
-      formData.append("encrypted", isChecked);
     }
 
-    console.log("formData", formData);
+    formData.append("encrypted", isChecked);
 
     try {
       const instance = axios.create({
@@ -45,9 +42,8 @@ const FileUploadModal = () => {
 
       if (response.status === 201) {
         alert("File uploaded successfully");
+        window.location.reload();
       }
-
-      console.log("response", response);
     } catch (error) {
       console.error("Error uploading file:", error);
     }
