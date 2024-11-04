@@ -11,4 +11,6 @@ router.get("/home", authenticateToken, async (req, res) => {
 
 router.post("/upload", authenticateToken, uploadFile);
 
+router.get("/download", authenticateToken, downloadFile);
+
 module.exports = router;
