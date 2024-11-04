@@ -29,7 +29,7 @@ const fileSchema = new Schema({
   },
   hash: {
     type: String,
-    // required: true,
+    required: true,
   }, //for integrity check
   createdAt: {
     type: Date,

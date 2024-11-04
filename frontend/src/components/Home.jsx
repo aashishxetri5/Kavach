@@ -37,11 +37,7 @@ const Home = () => {
         </div>
         <div className="fileList">
           <div className="flex flex-wrap items-center gap-4 w-full">
-            <FileCards />
-            <FileCards />
-            <FileCards />
-            <FileCards />
-            <FileCards />
+            {/* File cards */}
           </div>
         </div>
       </div>
@@ -51,11 +47,7 @@ const Home = () => {
         </div>
         <div className="fileList">
           <div className="flex flex-wrap items-center gap-4 w-full">
-            <FileCards />
-            <FileCards />
-            <FileCards />
-            <FileCards />
-            <FileCards />
+            {/* FIle cards */}
           </div>
         </div>
       </div>
