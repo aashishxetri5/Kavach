@@ -2,7 +2,6 @@ const { sbox, invSbox } = require("./SBox.js");
 const { mul2, mul3, mul9, mul11, mul13, mul14 } = require("./LookupTables.js");
 const crypto = require("crypto");
 const sha256 = require("./sha256.js");
-const fs = require("fs");
 
 class AES {
   constructor() {
