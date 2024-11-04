@@ -54,7 +54,9 @@ app.use(fileUpload());
 const corsOptions = {
   origin: "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true, // enable set cookie
+  credentials: true,
+  allowedHeaders: "Content-Type, Authorization",
+  exposedHeaders: "Content-Range, X-Content-Range",
 };
 
 // Apply CORS middleware
