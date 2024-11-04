@@ -44,7 +44,10 @@ These are the round constants used in each of the 64 rounds of the compression f
    */
   hash(message) {
     // Pre-processing (padding)
-    const originalMessage = Buffer.from(message, "utf8");
+     const originalMessage = Buffer.isBuffer(message)
+      ? message
+      : Buffer.from(message, "utf8");
+    
     let binaryMessage = "";
     for (let i = 0; i < originalMessage.length; i++) {
       binaryMessage += originalMessage[i].toString(2).padStart(8, "0");
