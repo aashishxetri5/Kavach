@@ -2,12 +2,7 @@ import React from "react";
 import ContextMenu from "./ContextMenu";
 import { truncateName } from "../utils/truncateName.utils";
 
-const FileCards = () => {
-  const fileName = truncateName(
-    `New File ${window.crypto.getRandomValues(new Uint8Array(14))}`,
-    15
-  );
-
+const FileCards = ({ file }) => {
   return (
     <div
       className="card px-0 h-48 border-0 shadow-xl rounded-2xl cursor-pointer"
@@ -15,14 +10,18 @@ const FileCards = () => {
     >
       <div
         className="card-body d-flex flex-column justify-content-between align-items-center"
-        title="ENTIRE FILE NAME CAN BE VERY LENGHTY"
+        title={file.filename}
       >
         <ContextMenu />
         <div className="fileIcon mx-auto w-2/5">
-          <img src={require("../assets/PDF.svg").default} alt="PDF Icon" />
-          {/* <img src={require(`../assets/${fileType}.svg`).default} alt={`${fileType} Icon`} /> */}
+          <img
+            src={require(`../assets/PDF.svg`).default}
+            alt={`${file.fileType} Icon`}
+          />
         </div>
-        <h5 className="card-title text-center text-base">{fileName}</h5>
+        <h5 className="card-title text-center text-base">
+          {truncateName(file.filename)}
+        </h5>
       </div>
     </div>
   );

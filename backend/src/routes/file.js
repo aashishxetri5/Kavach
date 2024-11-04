@@ -3,11 +3,17 @@ const router = express.Router();
 
 const { authenticateToken } = require("../middleware/TokenValidation");
 
-const { uploadFile } = require("../controllers/File.controller");
+const {
+  uploadFile,
+  getAllFiles,
+  downloadFile,
+} = require("../controllers/File.controller");
 
 router.get("/home", authenticateToken, async (req, res) => {
   res.send({ mesasge: "Hello World" });
 });
+
+router.get("/all", authenticateToken, getAllFiles);
 
 router.post("/upload", authenticateToken, uploadFile);
 

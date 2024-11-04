@@ -68,4 +68,16 @@ const downloadFile = async (req, res) => {
   }
 };
 
-module.exports = { downloadFile, uploadFile };
+// Get all files
+const getAllFiles = async (req, res) => {
+  try {
+    const filesByUser = await fileService.getFilesByUser(req.user.userId);
+
+    res.status(200).send({ files: filesByUser });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error.message);
+  }
+};
+
+module.exports = { uploadFile, downloadFile, getAllFiles };

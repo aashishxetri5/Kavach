@@ -122,4 +122,21 @@ const downloadFile = async (fileId, loggedInUser) => {
   }
 };
 
-module.exports = { downloadFile, uploadFile };
+// Get all files by user
+const getFilesByUser = async (userId) => {
+  try {
+    const files = await File.find({ owner: userId }).select(
+      "_id filename fileType filePath createdAt"
+    );
+
+    return files;
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while fetching files",
+    };
+  }
+};
+
+module.exports = { uploadFile, downloadFile, getFilesByUser };
