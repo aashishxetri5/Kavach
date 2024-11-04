@@ -1,14 +1,18 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
-const fileSchema = new mongoose.Schema({
+const fileSchema = new Schema({
   filename: {
     type: String,
+    required: true,
   },
   fileType: {
     type: String,
+    required: true,
   },
   filePath: {
     type: String,
+    required: true,
   },
   owner: {
     type: Schema.Types.ObjectId,
@@ -19,9 +23,13 @@ const fileSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  hash: {
+  iv: {
     type: String,
     required: true,
+  },
+  hash: {
+    type: String,
+    // required: true,
   }, //for integrity check
   createdAt: {
     type: Date,
