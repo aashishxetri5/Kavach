@@ -1,12 +1,14 @@
-const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const mongoose = require("mongoose");
 
 const User = require("../model/User.model");
 
-const validateUserCredentials = async (email, password) => {
+const validateUserCredentials = async (email, password, existingUserId) => {
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select(
+      "name username role password"
+    );
 
     if (!user) {
       return { success: false, message: "Invalid email!! User doesn't exist." };
@@ -23,11 +25,16 @@ const validateUserCredentials = async (email, password) => {
       return { success: false, message: "Invalid password" };
     }
 
+    // Check if the user is already logged in
+    if(existingUserId === user._id) {
+      console.log(existingUserId, user._id);
+      return { success: false, message: "User already logged in" };
+    }
+
     // Generate JWT token
     const token = jwt.sign(
       {
         userId: user._id,
-        fullname: user.fullname,
         username: user.username,
         role: user.role,
       },
@@ -37,7 +44,7 @@ const validateUserCredentials = async (email, password) => {
       }
     );
 
-    return { success: true, token };
+    return { success: true, token, userId: user._id };
   } catch (error) {
     console.error("Error in validateUserCredentials:", error);
     return { success: false, message: "Something went wrong!! Try again." };

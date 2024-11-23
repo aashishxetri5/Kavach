@@ -19,6 +19,10 @@ const AllFiles = () => {
           },
         });
         const data = await instance.get("/api/file/all");
+        if(data.status === 403) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
         setFiles(data.data.files);
       } catch (error) {
         setError(error);
@@ -40,7 +44,7 @@ const AllFiles = () => {
       <div className="fileList">
         <div className="flex flex-wrap items-center gap-4 w-full">
           {files.map((file) => (
-            <FileCards file={file} />
+            <FileCards key={file._id} file={file} />
           ))}
         </div>
       </div>
