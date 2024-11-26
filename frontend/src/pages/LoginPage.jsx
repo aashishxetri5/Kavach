@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import handleLogout from "../services/Auth.service";
 
 import Spinner from "../components/Spinner";
 
@@ -20,14 +21,16 @@ const LoginPage = () => {
 
     const token = localStorage.getItem("token");
 
-    if (token) {
+    if (!token) {
+      handleLogout();
+    } else {
       // Check for token expiry
       try {
         const decodedToken = jwtDecode(token);
         const currentTime = Date.now() / 1000;
 
         if (decodedToken.exp < currentTime) {
-          localStorage.removeItem("token");
+          handleLogout();
         } else {
           navigate("/");
         }
@@ -55,7 +58,6 @@ const LoginPage = () => {
       if (success) {
         localStorage.setItem("token", token);
         setSuccess(message);
-        console.log("Login Success:", success);
         navigate("/");
       } else {
         setError(message);

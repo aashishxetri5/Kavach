@@ -21,15 +21,15 @@ const fileSchema = new Schema({
   },
   encryptedKey: {
     type: String,
-    required: false,
+    default: null,
   },
   iv: {
     type: String,
-    required: true,
+    default: null,
   },
   hash: {
     type: String,
-    required: true,
+    default: null,
   }, //for integrity check
   createdAt: {
     type: Date,

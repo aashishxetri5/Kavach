@@ -4,9 +4,9 @@ const router = express.Router();
 const { authenticateToken } = require("../middleware/TokenValidation");
 
 const {
-  uploadFile,
+  upload,
   getAllFiles,
-  downloadFile,
+  download,
 } = require("../controllers/File.controller");
 
 router.get("/home", authenticateToken, async (req, res) => {
@@ -15,8 +15,8 @@ router.get("/home", authenticateToken, async (req, res) => {
 
 router.get("/all", authenticateToken, getAllFiles);
 
-router.post("/upload", authenticateToken, uploadFile);
+router.post("/upload", authenticateToken, upload);
 
-router.get("/download", authenticateToken, downloadFile);
+router.get("/download", authenticateToken, download);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FileCards } from "./FileCards";
+// import { FileCards } from "./FileCards";
 
 import axios from "axios";
 
@@ -8,6 +8,8 @@ const Home = () => {
   const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
+    document.title = "Kavach | Home";
+
     const fetchFiles = async () => {
       try {
         const instance = axios.create({
@@ -17,9 +19,14 @@ const Home = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
+
         const response = await instance.get("/api/file/home");
 
-        console.log("response file");
+        if (response.status === 403) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+
         setResources(response.data);
         setHasFetched(true);
       } catch (error) {
@@ -33,7 +40,7 @@ const Home = () => {
     <div className="">
       <div>
         <div className="title">
-          <h2 className="text-2xl mb-2 mt-1">Recent</h2>
+          <h2 className="text-2xl mb-2 mt-1">Encrypted Files</h2>
         </div>
         <div className="fileList">
           <div className="flex flex-wrap items-center gap-4 w-full">
@@ -43,7 +50,7 @@ const Home = () => {
       </div>
       <div>
         <div className="title">
-          <h2 className="text-2xl mb-2 mt-3">Another Section</h2>
+          <h2 className="text-2xl mb-2 mt-3">Normal Files</h2>
         </div>
         <div className="fileList">
           <div className="flex flex-wrap items-center gap-4 w-full">

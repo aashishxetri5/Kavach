@@ -1,8 +1,37 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import handleLogout from "../services/Auth.service.js";
+
+import { jwtDecode } from "jwt-decode";
 
 import logo from "../logo.svg";
 
 const TopBar = () => {
+  const [username, setUsername] = useState(null);
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    const decodedToken = jwtDecode(token);
+    setUsername(decodedToken.username);
+    setRole(decodedToken.role);
+
+    return () => {};
+  }, []);
+
+  const processLogout = async () => {
+    const isLoggedOut = await handleLogout();
+    if (isLoggedOut) {
+      window.location.reload();
+    }
+  };
+
   return (
     <div>
       <div className="topbar">
@@ -98,6 +127,7 @@ const TopBar = () => {
               </div>
             </div>
           </div>
+
           <div className="userdd dropdown">
             <div
               className="dropdown-toggle userProfile"
@@ -113,8 +143,8 @@ const TopBar = () => {
             </div>
             <ul className="dropdown-menu">
               <li>
-                <Link className="dropdown-item py-2" to="#">
-                  Action
+                <Link className="dropdown-item py-2" to="/profile">
+                  @{username}
                 </Link>
               </li>
               <li>
@@ -131,7 +161,7 @@ const TopBar = () => {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <Link className="dropdown-item py-2" to="/logout">
+                <Link className="dropdown-item py-2" onClick={processLogout}>
                   Logout
                 </Link>
               </li>

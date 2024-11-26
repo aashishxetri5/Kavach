@@ -111,3 +111,11 @@ body::-webkit-scrollbar{
 .directoryCard:hover {
   background-color: #fafafa;
 }
+
+.contextMenuItem:hover .contextMenuIcon{
+  fill: #f0f3f4;
+}
+
+.dropdown-item {
+  display: flex !important;
+}

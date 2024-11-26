@@ -4,7 +4,7 @@ const path = require("path");
 const fileService = require("../services/File.service");
 
 // Upload a file
-const uploadFile = async (req, res) => {
+const upload = async (req, res) => {
   const { file } = req.files;
   const { encrypted } = req.body;
 
@@ -19,10 +19,9 @@ const uploadFile = async (req, res) => {
 };
 
 // Download a file
-const downloadFile = async (req, res) => {
-  const { fileId } = req.body;
-
+const download = async (req, res) => {
   try {
+    const { fileId } = req.query;
     const result = await fileService.downloadFile(fileId, req.user);
 
     if (!result) {
@@ -80,4 +79,4 @@ const getAllFiles = async (req, res) => {
   }
 };
 
-module.exports = { uploadFile, downloadFile, getAllFiles };
+module.exports = { upload, download, getAllFiles };

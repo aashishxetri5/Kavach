@@ -1,6 +1,4 @@
-const mongoose = require("mongoose");
 const File = require("../model/File.model");
-const User = require("../model/User.model");
 
 const fs = require("fs");
 const AES = require("../crypto/AES");
@@ -23,31 +21,36 @@ const uploadFile = async (file, encrypted, loggedInUser) => {
     }
 
     const fileData = new File({
-      filename: `${file.name}.aes`,
+      filename: `${file.name}`,
       fileType: file.mimetype,
       filePath: path,
-      owner: loggedInUser.userId,
       encryptedKey: "",
       iv: "",
+      owner: loggedInUser.userId,
       hash: new SHA256().hash(file.data),
     });
 
-    const aes = new AES();
-    const cipheredFileData = aes.AES_Encrypt(file.data.toString("hex"));
+    if (encrypted === "true") {
+      const aes = new AES();
+      const cipheredFileData = aes.AES_Encrypt(file.data.toString("hex"));
 
-    const encryptedDataBuffer = Buffer.from(cipheredFileData, "hex");
+      const encryptedDataBuffer = Buffer.from(cipheredFileData, "hex");
 
-    if (!cipheredFileData) {
-      return null;
+      if (!cipheredFileData) {
+        return null;
+      }
+
+      fileData.encryptedKey = aes.key;
+      fileData.iv = aes.iv;
+      fileData.filename = `${file.name}.aes`;
+      saveEncryptedFile(path, fileData.filename, encryptedDataBuffer);
+      await fileData.save();
+      return { fileData, cipheredFileData };
     }
 
-    fileData.encryptedKey = aes.key;
-    fileData.iv = aes.iv;
-
-    saveEncryptedFile(path, fileData.filename, encryptedDataBuffer);
+    saveNormalFile(path, fileData.filename, file.data);
+    console.log("File saved: ", fileData);
     await fileData.save();
-
-    return { fileData, cipheredFileData };
   } catch (error) {
     console.error(error);
     return {
@@ -65,6 +68,13 @@ const uploadFile = async (file, encrypted, loggedInUser) => {
  */
 function saveEncryptedFile(path, filename, cipheredFileData) {
   fs.writeFile(`${path}/${filename}`, cipheredFileData, "binary", (err) => {
+    if (err) throw err;
+  });
+}
+
+// Saves files without encryption
+function saveNormalFile(path, filename, fileData) {
+  fs.writeFile(`${path}/${filename}`, fileData, "binary", (err) => {
     if (err) throw err;
   });
 }

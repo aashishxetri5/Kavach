@@ -14,14 +14,14 @@ const authenticateToken = (req, res, next) => {
         req.session.destroy((err) => {
           if (err) {
             console.error("Error destroying session:", err);
-            status = 500
+            return res.sendStatus(500);
           }
-          status = 403;
+          return res.sendStatus(403);
         });
       }  else {
-        status = 403;
+        return res.sendStatus(403);
       }
-      return res.sendStatus(status);
+      return;
     }
 
     req.user = user;

@@ -11,6 +11,7 @@ import Shared from "../components/ShareFiles";
 import Bin from "../components/Bin";
 
 import Spinner from "../components/Spinner";
+import handleLogout from "../services/Auth.service";
 
 const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
@@ -30,8 +31,7 @@ const DashboardPage = () => {
         const currentTime = Date.now() / 1000;
 
         if (currentTime > decodedToken.exp) {
-          localStorage.removeItem("token");
-          navigate("/login");
+          handleLogout();
         }
       } catch (error) {
         console.error("Error in getting token:", error);
@@ -49,7 +49,7 @@ const DashboardPage = () => {
   return (
     <div>
       <TopBar />
-      <div className="wrapper d-flex gap-2 mt-2">
+      <div className="wrapper d-flex gap-2 mt-1">
         <SideBar />
         <div className="content bg-white px-3 rounded w-4/5 mt-1 px-2 h-custom-screen overflow-y-scroll pb-8">
           <Routes>
