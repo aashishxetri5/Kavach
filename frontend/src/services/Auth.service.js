@@ -10,7 +10,6 @@ const handleLogout = async () => {
     });
     const response = await instance.post("/api/auth/logout");
 
-    console.log(response.status);
     if (response.status === 200) {
       localStorage.removeItem("token");
       return true;

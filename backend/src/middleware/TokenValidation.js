@@ -9,8 +9,11 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      let status;
-      if (err.name === "TokenExpiredError") {
+      console.log(err)
+      if (
+        err.name === "TokenExpiredError" ||
+        err.name === "JsonWebTokenError"
+      ) {
         req.session.destroy((err) => {
           if (err) {
             console.error("Error destroying session:", err);
@@ -18,7 +21,7 @@ const authenticateToken = (req, res, next) => {
           }
           return res.sendStatus(403);
         });
-      }  else {
+      } else {
         return res.sendStatus(403);
       }
       return;

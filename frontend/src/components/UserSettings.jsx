@@ -1,16 +1,50 @@
-import React, { useEffect } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import Spinners from "./Spinner";
 
 const UserSettings = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     document.title = "Kavach | Admin Dashboard";
+
+    const fetchUser = async () => {
+      try {
+        const instance = axios.create({
+          baseURL: "http://localhost:3000",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        const response = await instance.get("/api/user/loggedInUser");
+        if (response.status === 200) {
+          setUser(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
+
+  if (loading) return <Spinners />;
 
   const handleProfileUpdate = (e) => {
     e.preventDefault();
   };
 
+  const handlePasswordChange = (e) => {
+    e.preventDefault();
+  };
+
   return (
-    <div className="mx-12 my-4">
+    <div className="mx-12 my-4 select-none">
       <h2 className="mt-8 mb-4">Profile Information</h2>
       <form
         onSubmit={handleProfileUpdate}
@@ -42,19 +76,23 @@ const UserSettings = () => {
               className="form-control border-solid border-slate-400"
               id="fullname"
               name="fullname"
+              placeholder="Eg. John Doe"
+              value={user?.fullname}
               required
             />
           </div>
 
           <div className="mb-3">
-            <label htmlFor="email" className="form-label">
-              Email
+            <label htmlFor="username" className="form-label">
+              Username
             </label>
             <input
-              type="email"
+              type="text"
               className="form-control border-solid border-slate-400"
-              id="email"
-              name="email"
+              id="username"
+              name="username"
+              placeholder="Eg. johndoe"
+              value={user?.username}
               required
             />
           </div>
@@ -63,7 +101,7 @@ const UserSettings = () => {
           <input
             type="submit"
             className="form-control w-auto px-5 mt-3 bg-red-700 text-white"
-            id="email"
+            id="submit"
             name="submit"
             required
             value={"Update Profile"}
@@ -85,6 +123,7 @@ const UserSettings = () => {
               className="form-control border-solid border-slate-400"
               id="oldpassword"
               name="oldpassword"
+              placeholder={"*************"}
               required
             />
           </div>
@@ -97,6 +136,7 @@ const UserSettings = () => {
               className="form-control border-solid border-slate-400"
               id="newpassword"
               name="newpassword"
+              placeholder={"*************"}
               required
             />
           </div>
@@ -110,6 +150,7 @@ const UserSettings = () => {
               className="form-control border-solid border-slate-400"
               id="confirmPassword"
               name="confirmPassword"
+              placeholder={"*************"}
               required
             />
           </div>
@@ -118,7 +159,7 @@ const UserSettings = () => {
           <input
             type="submit"
             className="form-control w-auto px-5 mt-3 bg-red-700 text-white"
-            id="email"
+            id="changepwd"
             name="submit"
             required
             value={"Change Password"}

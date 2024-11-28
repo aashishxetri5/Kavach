@@ -45,20 +45,20 @@
   }
 }
 
-::-webkit-scrollbar{
+::-webkit-scrollbar {
   width: 7px;
 }
 
-::-webkit-scrollbar-thumb{
+::-webkit-scrollbar-thumb {
   background-color: var(--secondary-color);
   border-radius: 10px;
 }
 
-body::-webkit-scrollbar{
+body::-webkit-scrollbar {
   display: none;
 }
 
-.h-custom-screen{
+.h-custom-screen {
   height: calc(100vh - 73px);
 }
 
@@ -112,10 +112,16 @@ body::-webkit-scrollbar{
   background-color: #fafafa;
 }
 
-.contextMenuItem:hover .contextMenuIcon{
+.contextMenuItem:hover .contextMenuIcon {
   fill: #f0f3f4;
 }
 
 .dropdown-item {
   display: flex !important;
+}
+
+.userMgmtTbl thead{
+  background-color: var(--quaternary-color) !important;
+  position: sticky;
+  top: 0;
 }
