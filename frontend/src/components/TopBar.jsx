@@ -148,16 +148,6 @@ const TopBar = () => {
                 </Link>
               </li>
               <li>
-                <Link className="dropdown-item py-2" to="#">
-                  Another action
-                </Link>
-              </li>
-              <li>
-                <Link className="dropdown-item py-2" to="#">
-                  Something else here
-                </Link>
-              </li>
-              <li>
                 <hr className="dropdown-divider" />
               </li>
               <li>
