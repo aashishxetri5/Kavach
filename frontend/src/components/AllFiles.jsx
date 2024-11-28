@@ -1,35 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { FileCards } from "./FileCards";
 
+import Spinners from "../components/Spinner";
+
 const AllFiles = () => {
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadFiles = async () => {
+      try {
+        const instance = axios.create({
+          baseURL: "http://localhost:3000",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await instance.get("/api/file/all");
+        setFiles(data.data.files);
+      } catch (error) {
+        setError(error);
+        if (error.response.status === 403) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFiles();
+  }, []);
+
+  if (loading) return <Spinners />;
+
   return (
-    <div class="">
-      <div class="title">
-        <h2 class="text-2xl mb-3 mt-1">All Files</h2>
+    <div className="">
+      <div className="title">
+        <h2 className="text-2xl mb-3 mt-1">All Files</h2>
       </div>
-      <div class="fileList">
+      <div className="fileList">
         <div className="flex flex-wrap items-center gap-4 w-full">
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
-          <FileCards />
+          {files.map((file) => (
+            <FileCards key={file._id} file={file} />
+          ))}
         </div>
       </div>
     </div>

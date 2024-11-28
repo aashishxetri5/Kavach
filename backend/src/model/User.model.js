@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  name: {
+  fullname: {
     type: String,
     required: true,
   },
@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  passwordHash: {
+  password: {
     type: String,
     required: true,
   },
@@ -24,19 +24,7 @@ const userSchema = new mongoose.Schema({
     enum: ["ADMIN", "EMPLOYEE"],
     required: true,
   },
-  publicKey: {
-    type: String,
-    required: true,
-  },
-  privateKey: {
-    type: String,
-    required: true,
-  },
-  twoFactorEnabled: {
-    type: Boolean,
-    default: false,
-  },
-  createdAt: {
+  joined_at: {
     type: Date,
     default: Date.now,
   },

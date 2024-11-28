@@ -1,23 +1,25 @@
-const API_URL = process.env.REACT_APP_API_URL;
+import axios from "axios";
 
-export const login = async (email, password) => {
+const handleLogout = async () => {
   try {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+    const instance = axios.create({
+      baseURL: "http://localhost:3000",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     });
+    const response = await instance.post("/api/auth/logout");
 
-    if(!response.ok) {
-        throw new Error("Login Failed!!");
+    if (response.status === 200) {
+      localStorage.removeItem("token");
+      return true;
+    } else {
+      return false;
     }
-
-    const data = await response.json();
-
-    return data;
   } catch (error) {
-    return error.response.data;
+    console.error(error);
+    return false;
   }
 };
+
+export default handleLogout;

@@ -1,8 +1,37 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import handleLogout from "../services/Auth.service.js";
+
+import { jwtDecode } from "jwt-decode";
 
 import logo from "../logo.svg";
 
 const TopBar = () => {
+  const [username, setUsername] = useState(null);
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    const decodedToken = jwtDecode(token);
+    setUsername(decodedToken.username);
+    setRole(decodedToken.role);
+
+    return () => {};
+  }, []);
+
+  const processLogout = async () => {
+    const isLoggedOut = await handleLogout();
+    if (isLoggedOut) {
+      window.location.reload();
+    }
+  };
+
   return (
     <div>
       <div className="topbar">
@@ -98,6 +127,7 @@ const TopBar = () => {
               </div>
             </div>
           </div>
+
           <div className="userdd dropdown">
             <div
               className="dropdown-toggle userProfile"
@@ -113,27 +143,17 @@ const TopBar = () => {
             </div>
             <ul className="dropdown-menu">
               <li>
-                <a className="dropdown-item py-2" href="#">
-                  Action
-                </a>
-              </li>
-              <li>
-                <a className="dropdown-item py-2" href="#">
-                  Another action
-                </a>
-              </li>
-              <li>
-                <a className="dropdown-item py-2" href="#">
-                  Something else here
-                </a>
+                <Link className="dropdown-item py-2" to="/profile">
+                  @{username}
+                </Link>
               </li>
               <li>
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <a className="dropdown-item py-2" href="#">
-                  Separated link
-                </a>
+                <Link className="dropdown-item py-2" onClick={processLogout}>
+                  Logout
+                </Link>
               </li>
             </ul>
           </div>
