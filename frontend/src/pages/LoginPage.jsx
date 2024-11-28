@@ -30,7 +30,8 @@ const LoginPage = () => {
         const currentTime = Date.now() / 1000;
 
         if (decodedToken.exp < currentTime) {
-          handleLogout();
+          const result = handleLogout();
+          if (result) window.location.reload();
         } else {
           navigate("/");
         }
