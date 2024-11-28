@@ -24,15 +24,7 @@ const userSchema = new mongoose.Schema({
     enum: ["ADMIN", "EMPLOYEE"],
     required: true,
   },
-  publicKey: {
-    type: String,
-    required: true,
-  },
-  privateKey: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
+  joined_at: {
     type: Date,
     default: Date.now,
   },
