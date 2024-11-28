@@ -11,14 +11,14 @@ const SHA256 = require("../crypto/sha256");
 const fetchDisplayFiles = async (userId) => {
   try {
     const encryptedFiles = await File.find({
-      $and: [{ owner: userId }, { encryptedKey: { $in: [null, ""] } }],
+      $and: [{ owner: userId }, { encryptedKey: { $nin: [null, ""] } }],
     })
       .sort({ createdAt: -1 })
       .limit(4)
       .select("_id filename fileType filePath createdAt");
 
     const unencryptedFiles = await File.find({
-      $and: [{ owner: userId }, { encryptedKey: { $nin: [null, ""] } }],
+      $and: [{ owner: userId }, { encryptedKey: { $in: [null, ""] } }],
     })
       .sort({ createdAt: -1 })
       .limit(4)
