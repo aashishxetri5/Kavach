@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-// import { FileCards } from "./FileCards";
+import { FileCards } from "./FileCards";
 
 import axios from "axios";
 
@@ -22,15 +22,17 @@ const Home = () => {
 
         const response = await instance.get("/api/file/home");
 
-        if (response.status === 403) {
+        if (response.status === 200) {
+          setResources(response.data.data);
+          console.log(resources);
+          setHasFetched(true);
+        }
+      } catch (error) {
+        console.error("Error fetching files:", error);
+        if (error.response.status === 403) {
           localStorage.removeItem("token");
           window.location.reload();
         }
-
-        setResources(response.data);
-        setHasFetched(true);
-      } catch (error) {
-        console.error("Error fetching files:", error);
       }
     };
     fetchFiles();
@@ -42,21 +44,33 @@ const Home = () => {
         <div className="title">
           <h2 className="text-2xl mb-2 mt-1">Encrypted Files</h2>
         </div>
-        <div className="fileList">
-          <div className="flex flex-wrap items-center gap-4 w-full">
-            {/* File cards */}
+        {resources?.encryptedFiles?.length > 0 ? (
+          <div className="fileList">
+            <div className="flex flex-wrap items-center gap-4 w-full">
+              {resources.encryptedFiles.map((file) => (
+                <FileCards key={file._id} file={file} />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <p>No encrypted files available.</p>
+        )}
       </div>
       <div>
         <div className="title">
           <h2 className="text-2xl mb-2 mt-3">Normal Files</h2>
         </div>
-        <div className="fileList">
-          <div className="flex flex-wrap items-center gap-4 w-full">
-            {/* FIle cards */}
+        {resources?.encryptedFiles?.length > 0 ? (
+          <div className="fileList">
+            <div className="flex flex-wrap items-center gap-4 w-full">
+              {resources.unencryptedFiles.map((file) => (
+                <FileCards key={file._id} file={file} />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <p>No unencrypted files available.</p>
+        )}
       </div>
     </div>
   );

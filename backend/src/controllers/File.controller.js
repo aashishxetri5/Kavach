@@ -3,6 +3,16 @@ const path = require("path");
 
 const fileService = require("../services/File.service");
 
+const getFilesForHome = async (req, res) => {
+  try {
+    const response = await fileService.fetchDisplayFiles(req.user.userId);
+    res.status(200).send(response);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error.message);
+  }
+};
+
 // Upload a file
 const upload = async (req, res) => {
   const { file } = req.files;
@@ -79,4 +89,4 @@ const getAllFiles = async (req, res) => {
   }
 };
 
-module.exports = { upload, download, getAllFiles };
+module.exports = { getFilesForHome, upload, download, getAllFiles };

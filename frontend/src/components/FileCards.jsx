@@ -13,10 +13,10 @@ const FileCards = ({ file }) => {
         title={file.filename}
       >
         <ContextMenu file={{ file }} />
-        
+
         <div className="fileIcon mx-auto w-2/5">
           <img
-            src={require(`../assets/PDF.svg`).default}
+            src={require(`../assets/${file.fileType}.svg`)}
             alt={`${file.fileType} Icon`}
           />
         </div>

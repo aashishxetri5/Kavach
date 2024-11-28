@@ -1,13 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FileCards } from "./FileCards";
 
 import Spinners from "../components/Spinner";
 
 const AllFiles = () => {
-  const [files, setFiles] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadFiles = async () => {
@@ -19,13 +19,13 @@ const AllFiles = () => {
           },
         });
         const data = await instance.get("/api/file/all");
-        if(data.status === 403) {
-          localStorage.removeItem("token");
-          window.location.reload();
-        }
         setFiles(data.data.files);
       } catch (error) {
         setError(error);
+        if (error.response.status === 403) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
       } finally {
         setLoading(false);
       }

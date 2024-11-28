@@ -4,14 +4,13 @@ const router = express.Router();
 const { authenticateToken } = require("../middleware/TokenValidation");
 
 const {
+  getFilesForHome,
   upload,
   getAllFiles,
   download,
 } = require("../controllers/File.controller");
 
-router.get("/home", authenticateToken, async (req, res) => {
-  res.send({ mesasge: "Hello World" });
-});
+router.get("/home", authenticateToken, getFilesForHome);
 
 router.get("/all", authenticateToken, getAllFiles);
 
