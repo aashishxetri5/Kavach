@@ -1,9 +1,49 @@
 const File = require("../model/File.model");
+const {
+  getExtensionFromMimeType,
+} = require("../utils/EquivalentMimeTypes.util");
 
 const fs = require("fs");
 const AES = require("../crypto/AES");
 const SHA256 = require("../crypto/sha256");
 // const RSA = require("../crypto/RSA")
+
+const fetchDisplayFiles = async (userId) => {
+  try {
+    const encryptedFiles = await File.find({
+      $and: [{ owner: userId }, { encryptedKey: { $in: [null, ""] } }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(4)
+      .select("_id filename fileType filePath createdAt");
+
+    const unencryptedFiles = await File.find({
+      $and: [{ owner: userId }, { encryptedKey: { $nin: [null, ""] } }],
+    })
+      .sort({ createdAt: -1 })
+      .limit(4)
+      .select("_id filename fileType filePath createdAt");
+
+    encryptedFiles.forEach((file) => {
+      file.fileType = getExtensionFromMimeType(file.fileType);
+    });
+
+    unencryptedFiles.forEach((file) => {
+      file.fileType = getExtensionFromMimeType(file.fileType);
+    });
+
+    return {
+      success: true,
+      data: { encryptedFiles, unencryptedFiles },
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while fetching files",
+    };
+  }
+};
 
 /**
  *
@@ -49,7 +89,6 @@ const uploadFile = async (file, encrypted, loggedInUser) => {
     }
 
     saveNormalFile(path, fileData.filename, file.data);
-    console.log("File saved: ", fileData);
     await fileData.save();
   } catch (error) {
     console.error(error);
@@ -139,6 +178,10 @@ const getFilesByUser = async (userId) => {
       "_id filename fileType filePath createdAt"
     );
 
+    files.forEach((file) => {
+      file.fileType = getExtensionFromMimeType(file.fileType);
+    });
+
     return files;
   } catch (error) {
     console.error(error);
@@ -149,4 +192,9 @@ const getFilesByUser = async (userId) => {
   }
 };
 
-module.exports = { uploadFile, downloadFile, getFilesByUser };
+module.exports = {
+  fetchDisplayFiles,
+  uploadFile,
+  downloadFile,
+  getFilesByUser,
+};
