@@ -24,7 +24,6 @@ const Home = () => {
 
         if (response.status === 200) {
           setResources(response.data.data);
-          console.log(resources);
           setHasFetched(true);
         }
       } catch (error) {
