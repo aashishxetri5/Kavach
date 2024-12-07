@@ -1,4 +1,6 @@
 const File = require("../model/File.model");
+const Sharing = require("../model/Sharing.model");
+const mongoose = require("mongoose");
 const {
   getExtensionFromMimeType,
 } = require("../utils/EquivalentMimeTypes.util");
@@ -6,6 +8,7 @@ const {
 const fs = require("fs");
 const AES = require("../crypto/AES");
 const SHA256 = require("../crypto/sha256");
+const User = require("../model/User.model");
 // const RSA = require("../crypto/RSA")
 
 const fetchDisplayFiles = async (userId) => {
@@ -138,9 +141,12 @@ const downloadFile = async (fileId, loggedInUser) => {
       console.log("File found");
     }
 
-    if (file.owner.toString() !== loggedInUser.userId.toString()) {
+    if (
+      file.owner.toString() !== loggedInUser.userId.toString() &&
+      !Sharing.findOne({ sharedWith: loggedInUser.userId })
+    ) {
       console.log("Unauthorized access");
-      return;
+      return { success: false, message: "Unauthorized access" };
     }
 
     const encryptedFileData = fs.readFileSync(
@@ -161,6 +167,44 @@ const downloadFile = async (fileId, loggedInUser) => {
     return {
       data: decryptedDataBuffer,
       fileName: file.filename, // Original file name or whatever you want to return
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while downloading the file",
+    };
+  }
+};
+
+const downloadNormalFile = async (fileId, userId) => {
+  try {
+    const file = await File.findById(fileId);
+
+    if (!file) {
+      return {
+        success: false,
+        message: "File not found",
+      };
+    }
+
+    console.log("check if exists: ", Sharing.findOne({ sharedWith: userId }));
+
+    if (
+      file.owner.toString() !== userId.toString() &&
+      !Sharing.findOne({ sharedWith: userId })
+    ) {
+      return {
+        success: false,
+        message: "Unauthorized access",
+      };
+    }
+
+    const fileData = fs.readFileSync(`${file.filePath}/${file.filename}`);
+
+    return {
+      data: fileData,
+      fileName: file.filename,
     };
   } catch (error) {
     console.error(error);
@@ -192,9 +236,162 @@ const getFilesByUser = async (userId) => {
   }
 };
 
+// Update share file list
+const updateShareList = async (fileId, emails, userId) => {
+  try {
+    const file = await File.findById(fileId);
+
+    if (!file) {
+      return {
+        success: false,
+        message: "File not found",
+      };
+    }
+
+    let sharingRecord = await Sharing.findOne({
+      file: file._id,
+    });
+
+    const userPromises = emails.map(async (email) => {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return {
+          success: false,
+          message: `User with email ${email} not found`,
+        };
+      }
+      return user._id;
+    });
+
+    const users = await Promise.all(userPromises);
+
+    const notFound = users.filter((user) => !user);
+    if (notFound.length > 0) {
+      return {
+        success: false,
+        message: `Some users were not found: ${notFound.join(", ")}`,
+      };
+    }
+console.log("Sharing record: ", sharingRecord);
+    if (sharingRecord) {
+      sharingRecord.sharedWith = users;
+      await sharingRecord.save();
+
+      return {
+        success: true,
+        message: "File shared successfully",
+      };
+    } else {
+      // If no existing share record, create a new one
+      console.log("Creating new sharing record");
+      sharingRecord = new Sharing({
+        file: file._id,
+        sharedWIth: users,
+        sharedBy: userId,
+      });
+      await sharingRecord.save();
+      return {
+        success: true,
+        message: "File shared successfully",
+      };
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while sharing the file",
+    };
+  }
+};
+
+const getSharedFiles = async (userId) => {
+  try {
+    const sharingRecords = await Sharing.aggregate([
+      {
+        $match: { sharedWith: new mongoose.Types.ObjectId(userId) },
+      },
+
+      // Populate the 'file' and 'sharedBy' fields (optional for aggregation, if needed)
+      {
+        $lookup: {
+          from: "files", // This refers to the 'File' collection
+          localField: "file", // The field in 'Sharing' to join on
+          foreignField: "_id", // The field in 'File' collection to join on
+          as: "fileDetails", // The alias for the populated file details
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // This refers to the 'User' collection
+          localField: "sharedBy", // The field in 'Sharing' to join on
+          foreignField: "_id", // The field in 'User' collection to join on
+          as: "sharedByDetails", // The alias for the populated user details
+        },
+      },
+
+      // Unwind the 'fileDetails' and 'sharedByDetails' arrays (they contain only one item)
+      { $unwind: "$fileDetails" },
+      { $unwind: "$sharedByDetails" },
+
+      // Group by 'sharedBy' and push file details into an array
+      {
+        $group: {
+          _id: "$sharedBy", // Group by 'sharedBy' field
+          sharedByDetails: { $first: "$sharedByDetails" }, // Get the details of the 'sharedBy' user
+          files: {
+            $push: {
+              k: "file", // Use the filename as the key
+              v: {
+                _id: "$fileDetails._id", // Direct reference to _id
+                filename: "$fileDetails.filename", // Direct reference to filename
+                fileType: "$fileDetails.fileType", // Direct reference to fileType
+                filePath: "$fileDetails.filePath", // Direct reference to filePath
+                createdAt: "$fileDetails.createdAt", // Direct reference to createdAt
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          sharedBy: {
+            _id: "$sharedByDetails._id", // Only include _id
+            fullname: "$sharedByDetails.fullname", // Only include fullname
+            email: "$sharedByDetails.email", // Only include email
+          },
+          files: {
+            $arrayToObject: "$files", // Convert the array into an object
+          },
+        },
+      },
+    ]);
+
+    sharingRecords.forEach((record) => {
+      Object.entries(record.files).forEach(([filename, file]) => {
+        file.fileType = getExtensionFromMimeType(file.fileType);
+      });
+    });
+
+    return {
+      success: true,
+      data: sharingRecords,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while fetching shared files",
+    };
+  }
+};
+
 module.exports = {
   fetchDisplayFiles,
   uploadFile,
   downloadFile,
+  downloadNormalFile,
   getFilesByUser,
+  updateShareList,
+  getSharedFiles,
 };
