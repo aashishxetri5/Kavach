@@ -2402,8 +2402,8 @@ input:checked + .toggle-bg {
 }
 
 .py-2\.5 {
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
 }
 
 .py-24 {
