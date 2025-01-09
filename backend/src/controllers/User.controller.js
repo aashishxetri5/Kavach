@@ -57,7 +57,6 @@ const fetchEmails = async (req, res) => {
 const fetchSharedUsers = async (fileId) => {
   try {
     const response = await userService.getSharedUsers(fileId);
-    console.log(response);
     return response;
   } catch (error) {
     return { success: false, message: error.message };

@@ -148,16 +148,14 @@ const getAllFiles = async (req, res) => {
 // Add users to share list
 const shareFiles = async (req, res) => {
   const { fileId, emails } = req.body;
-  console.log(fileId, emails); 
   try {
     const response = await fileService.updateShareList(
       fileId,
       emails,
       req.user.userId
     );
-    console.log(response);
 
-    res.status(200).send({ success: true });
+    res.status(200).send({ success: true, response });
   } catch (error) {
     console.error(error);
     res.status(400).send(error.message);

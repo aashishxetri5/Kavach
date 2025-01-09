@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const mongoose = require("mongoose");
 
 const User = require("../model/User.model");
 
@@ -26,10 +25,10 @@ const validateUserCredentials = async (email, password, existingUserId) => {
     }
 
     // Check if the user is already logged in
-    if(existingUserId === user._id) {
-      console.log(existingUserId, user._id);
-      return { success: false, message: "User already logged in" };
-    }
+    // if(existingUserId === user._id) {
+    //   console.log(existingUserId, user._id);
+    //   return { success: false, message: "User already logged in" };
+    // }
 
     // Generate JWT token
     const token = jwt.sign(
