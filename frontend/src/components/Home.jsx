@@ -46,9 +46,10 @@ const Home = () => {
         {resources?.encryptedFiles?.length > 0 ? (
           <div className="fileList">
             <div className="flex flex-wrap items-center gap-4 w-full">
-              {resources.encryptedFiles.map((file) => (
-                <FileCards key={file._id} file={file} />
-              ))}
+              {Array.isArray(resources.encryptedFiles) &&
+                resources.encryptedFiles.map((file) => (
+                  <FileCards key={file._id} file={file} />
+                ))}
             </div>
           </div>
         ) : (

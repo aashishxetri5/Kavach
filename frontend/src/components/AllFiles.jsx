@@ -43,9 +43,14 @@ const AllFiles = () => {
       </div>
       <div className="fileList">
         <div className="flex flex-wrap items-center gap-4 w-full">
-          {files.map((file) => (
-            <FileCards key={file._id} file={file} />
-          ))}
+          {files.length !== 0 ? (
+            Array.isArray(files) &&
+            files.map((file) => <FileCards key={file._id} file={file} />)
+          ) : (
+            <div className="text-center w-full">
+              <h2 className="text-2xl">No files found</h2>
+            </div>
+          )}
         </div>
       </div>
     </div>

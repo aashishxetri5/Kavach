@@ -15,7 +15,7 @@ const ContextMenu = ({ file }) => {
       },
     });
     let url;
-    if (file.file.filename.includes(".aes")) {
+    if (file.filename.includes(".aes")) {
       url = `/api/file/download`;
     } else {
       url = `/api/file/normaldownload`;
@@ -30,10 +30,10 @@ const ContextMenu = ({ file }) => {
     const blob = await response.data;
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    if (file.file.filename.includes(".aes")) {
-      link.download = file.file.filename.replace(".aes", ""); // Set the default download file name
+    if (file.filename.includes(".aes")) {
+      link.download = file.filename.replace(".aes", ""); // Set the default download file name
     } else {
-      link.download = file.file.filename;
+      link.download = file.filename;
     }
     link.click();
   };
