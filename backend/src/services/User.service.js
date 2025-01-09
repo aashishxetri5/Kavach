@@ -3,6 +3,7 @@ const crypto = require("crypto");
 
 const emailService = require("./Email.service");
 const Sharing = require("../model/Sharing.model");
+const { KeyManager } = require("../crypto/RSA");
 
 const createUser = async (user) => {
   try {
@@ -30,6 +31,9 @@ const createUser = async (user) => {
       role: user.role.toUpperCase(),
     });
 
+    const keyManager = new KeyManager(`C:/SecretKeys/${newUser.username}`);
+    keyManager.generateAndSaveKeyPairs();
+
     try {
       await emailService.sendEmail(
         user.email,
@@ -56,6 +60,7 @@ const createUser = async (user) => {
       message: "User created successfully",
     };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       message: error.message,

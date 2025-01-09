@@ -7,13 +7,9 @@ class KeyManager {
   constructor(keyDir) {
     this.keySize = 2048;
     this.keyDir = keyDir;
+    fs.mkdirSync(keyDir, { recursive: true });
     this.publicKeyPath = `${keyDir}/public_key.pem`;
     this.privateKeyPath = `${keyDir}/private_key.pem`;
-    console.log(
-      "KeyManager constructor called",
-      this.publicKeyPath,
-      this.privateKeyPath
-    );
   }
 
   // Ensure RSA keys exist or generate new ones
@@ -78,14 +74,13 @@ class Encryption_and_Decryption {
     }
 
     const hexDecrypted = decrypted.toString(16).replace(/^0+/, ""); // Remove leading zeros
-    return Buffer.from(hexDecrypted, "hex");
+    return hexDecrypted;
   }
 
   // Extract N, e, and d from provided keys
   extractPublicKeyComponents(key) {
     const publicKey = crypto.createPublicKey(key);
     const publicKeyDetails = publicKey.export({ format: "jwk" });
-    console.log(publicKeyDetails);
 
     const N = BigInt(
       `0x${Buffer.from(publicKeyDetails.n, "base64").toString("hex")}`
@@ -100,7 +95,6 @@ class Encryption_and_Decryption {
   extractPrivateKeyComponents(key) {
     const privateKey = crypto.createPrivateKey(key);
     const privateKeyDetails = privateKey.export({ format: "jwk" });
-    console.log(privateKeyDetails);
 
     const N = BigInt(
       `0x${Buffer.from(privateKeyDetails.n, "base64").toString("hex")}`

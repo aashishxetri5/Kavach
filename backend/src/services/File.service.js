@@ -9,7 +9,7 @@ const fs = require("fs");
 const AES = require("../crypto/AES");
 const SHA256 = require("../crypto/sha256");
 const User = require("../model/User.model");
-// const RSA = require("../crypto/RSA")
+const { Encryption_and_Decryption } = require("../crypto/RSA");
 
 const fetchDisplayFiles = async (userId) => {
   try {
@@ -76,14 +76,19 @@ const uploadFile = async (file, encrypted, loggedInUser) => {
     if (encrypted === "true") {
       const aes = new AES();
       const cipheredFileData = aes.AES_Encrypt(file.data.toString("hex"));
-
       const encryptedDataBuffer = Buffer.from(cipheredFileData, "hex");
 
       if (!cipheredFileData) {
         return null;
       }
 
-      fileData.encryptedKey = aes.key;
+      const rsa = new Encryption_and_Decryption();
+      const public_key = fs.readFileSync(
+        `C:/SecretKeys/${loggedInUser.username}/public_key.pem`,
+        "utf8"
+      );
+
+      fileData.encryptedKey = rsa.encryptAESKey(aes.key, public_key);
       fileData.iv = aes.iv;
       fileData.filename = `${file.name}.aes`;
       saveEncryptedFile(path, fileData.filename, encryptedDataBuffer);
@@ -156,8 +161,14 @@ const downloadFile = async (fileId, loggedInUser) => {
     const encryptedHexData = encryptedFileData.toString("hex");
 
     const aes = new AES();
+    const rsa = new Encryption_and_Decryption();
+    const private_key = fs.readFileSync(
+      `C:/SecretKeys/${loggedInUser.username}/private_key.pem`,
+      "utf8"
+    );
+
     const decryptedHexData = aes.AES_Decrypt(
-      file.encryptedKey,
+      rsa.decryptAESKey(file.encryptedKey, private_key),
       file.iv,
       encryptedHexData
     );
@@ -272,7 +283,7 @@ const updateShareList = async (fileId, emails, userId) => {
         message: `Some users were not found: ${notFound.join(", ")}`,
       };
     }
-console.log("Sharing record: ", sharingRecord);
+    console.log("Sharing record: ", sharingRecord);
     if (sharingRecord) {
       sharingRecord.sharedWith = users;
       await sharingRecord.save();
