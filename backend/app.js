@@ -7,6 +7,8 @@ const MongoStore = require("connect-mongo");
 const fileUpload = require("express-fileupload");
 require("dotenv").config();
 
+const setupAdminUser = require("./initialSetup");
+
 const secret = process.env.SESSION_SECRET;
 const connectionString = process.env.CONNECTION_STRING;
 
@@ -23,12 +25,11 @@ app.use(
   })
 );
 
+setupAdminUser();
+
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Middleware for flash messages
-app.use(flash());
 
 // Middleware to handle file uploads
 app.use(fileUpload());
