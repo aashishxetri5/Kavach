@@ -199,8 +199,6 @@ const downloadNormalFile = async (fileId, userId) => {
       };
     }
 
-    console.log("check if exists: ", Sharing.findOne({ sharedWith: userId }));
-
     if (
       file.owner.toString() !== userId.toString() &&
       !Sharing.findOne({ sharedWith: userId })
@@ -283,7 +281,7 @@ const updateShareList = async (fileId, emails, userId) => {
         message: `Some users were not found: ${notFound.join(", ")}`,
       };
     }
-    console.log("Sharing record: ", sharingRecord);
+
     if (sharingRecord) {
       sharingRecord.sharedWith = users;
       await sharingRecord.save();
@@ -294,7 +292,6 @@ const updateShareList = async (fileId, emails, userId) => {
       };
     } else {
       // If no existing share record, create a new one
-      console.log("Creating new sharing record");
       sharingRecord = new Sharing({
         file: file._id,
         sharedWIth: users,
@@ -317,76 +314,47 @@ const updateShareList = async (fileId, emails, userId) => {
 
 const getSharedFiles = async (userId) => {
   try {
-    const sharingRecords = await Sharing.aggregate([
+    const sharingRecords = await Sharing.find({
+      sharedWith: userId,
+    }).populate([
       {
-        $match: { sharedWith: new mongoose.Types.ObjectId(userId) },
-      },
-
-      // Populate the 'file' and 'sharedBy' fields (optional for aggregation, if needed)
-      {
-        $lookup: {
-          from: "files", // This refers to the 'File' collection
-          localField: "file", // The field in 'Sharing' to join on
-          foreignField: "_id", // The field in 'File' collection to join on
-          as: "fileDetails", // The alias for the populated file details
-        },
+        path: "file", // Populate the 'file' field with file details
+        model: "File",
+        select: "_id filename fileType createdAt", // Select only the required fields
       },
       {
-        $lookup: {
-          from: "users", // This refers to the 'User' collection
-          localField: "sharedBy", // The field in 'Sharing' to join on
-          foreignField: "_id", // The field in 'User' collection to join on
-          as: "sharedByDetails", // The alias for the populated user details
-        },
-      },
-
-      // Unwind the 'fileDetails' and 'sharedByDetails' arrays (they contain only one item)
-      { $unwind: "$fileDetails" },
-      { $unwind: "$sharedByDetails" },
-
-      // Group by 'sharedBy' and push file details into an array
-      {
-        $group: {
-          _id: "$sharedBy", // Group by 'sharedBy' field
-          sharedByDetails: { $first: "$sharedByDetails" }, // Get the details of the 'sharedBy' user
-          files: {
-            $push: {
-              k: "file", // Use the filename as the key
-              v: {
-                _id: "$fileDetails._id", // Direct reference to _id
-                filename: "$fileDetails.filename", // Direct reference to filename
-                fileType: "$fileDetails.fileType", // Direct reference to fileType
-                filePath: "$fileDetails.filePath", // Direct reference to filePath
-                createdAt: "$fileDetails.createdAt", // Direct reference to createdAt
-              },
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          sharedBy: {
-            _id: "$sharedByDetails._id", // Only include _id
-            fullname: "$sharedByDetails.fullname", // Only include fullname
-            email: "$sharedByDetails.email", // Only include email
-          },
-          files: {
-            $arrayToObject: "$files", // Convert the array into an object
-          },
-        },
+        path: "sharedBy", // Populate the 'sharedBy' field with user details
+        model: "User",
+        select: "email fullname", // Select only the required fields (you can add more if needed)
       },
     ]);
 
-    sharingRecords.forEach((record) => {
-      Object.entries(record.files).forEach(([filename, file]) => {
-        file.fileType = getExtensionFromMimeType(file.fileType);
+    const sharedFiles = sharingRecords.reduce((acc, record) => {
+      const sharedByUserEmail = record.sharedBy.email; // Get the email of the user who shared the file
+      const sharedByUserFullname = record.sharedBy.fullname; // Get the fullname of the user who shared the file
+
+      // If the user doesn't exist in the accumulator, create an entry for them
+      if (!acc[sharedByUserEmail]) {
+        acc[sharedByUserEmail] = {
+          fullname: sharedByUserFullname,
+          files: [],
+        };
+      }
+
+      // Push the file into the user's files array (formatted properly)
+      acc[sharedByUserEmail].files.push({
+        _id: record.file._id.toString(),
+        filename: record.file.filename,
+        fileType: getExtensionFromMimeType(record.file.fileType),
+        createdAt: record.file.createdAt.toISOString(),
       });
-    });
+
+      return acc;
+    }, {});
 
     return {
       success: true,
-      data: sharingRecords,
+      data: sharedFiles,
     };
   } catch (error) {
     console.error(error);

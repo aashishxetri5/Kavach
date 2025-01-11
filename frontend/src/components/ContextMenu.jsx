@@ -1,12 +1,31 @@
 import React, { useEffect, useState } from "react";
+import { Button, Modal } from "react-bootstrap";
 import axios from "axios";
-import FileSharingModal from "./FileSharingModal";
+// import FileSharingModal from "./FileSharingModal";
 
 const ContextMenu = ({ file }) => {
-  const [currentfile, setCurrentFile] = useState(file);
+  const [selectedFileId, setSelectedFileId] = useState(null);
+
+  const [emails, setEmails] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedEmails, setSelectedEmails] = useState(new Set());
+
+  const [show, setShow] = useState(false);
+  const handleShow = () => {
+    if (!file._id) {
+      console.warn("Cannot open share modal: fileId is undefined.");
+      return;
+    }
+    beginEmailTasks();
+    setShow(true);
+  };
+  const handleClose = () => {
+    setSearchQuery("");
+    setSelectedEmails(new Set());
+    setShow(false);
+  };
 
   const handleDownload = async () => {
-    console.log("Download", file._id);
     const instance = axios.create({
       baseURL: "http://localhost:3000",
       headers: {
@@ -38,9 +57,106 @@ const ContextMenu = ({ file }) => {
     link.click();
   };
 
+  // Logics for sharing files
+  const fetchEmails = async () => {
+    try {
+      const instance = axios.create({
+        baseURL: "http://localhost:3000",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await instance.get(`/api/user/emails`);
+      if (response.data?.data) {
+        const emailList = response.data.data.map((item) => ({
+          email: item.email,
+          fullname: item.fullname,
+        }));
+        setEmails(emailList); // Set emails in state
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchSharedUsers = async () => {
+    try {
+      const instance = axios.create({
+        baseURL: "http://localhost:3000",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await instance.get(
+        `/api/file/sharedWith/${selectedFileId}`
+      );
+
+      if (response.data?.sharedWith) {
+        const sharedWith = response.data.sharedWith.map((user) => user.email);
+
+        // Set the checked emails state
+        setSelectedEmails(new Set(sharedWith)); // pre-select emails that are already shared
+      }
+    } catch (error) {
+      console.error("Error fetching shared users", error);
+    }
+  };
+
+  const filteredEmails = emails.filter(
+    (emailObj) =>
+      emailObj.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emailObj.fullname.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleCheckboxChange = (email) => {
+    setSelectedEmails((prevSelected) => {
+      const newCheckedEmails = new Set(prevSelected);
+      if (newCheckedEmails.has(email)) {
+        newCheckedEmails.delete(email); // Unselect the email
+      } else {
+        newCheckedEmails.add(email); // Select the email
+      }
+      return newCheckedEmails;
+    });
+  };
+
+  const handleFileShare = async () => {
+    try {
+      // Send the selected emails to the backend API
+      const instance = axios.create({
+        baseURL: "http://localhost:3000",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await instance.post("/api/file/share", {
+        emails: Array.from(selectedEmails),
+        fileId: selectedFileId,
+      });
+
+      if (response.status === 200) {
+        alert("File shared successfully " + selectedFileId);
+        handleClose();
+      }
+    } catch (error) {
+      console.error("Error sending emails:", error);
+    }
+  };
+
+  const beginEmailTasks = async () => {
+    await fetchEmails();
+    await fetchSharedUsers();
+  };
+
   useEffect(() => {
-    setCurrentFile(file);
-  }, [file]);
+    setSelectedFileId(file._id);
+  }, [selectedFileId, file._id]);
 
   return (
     <div className="d-flex justify-content-between align-items-center ms-auto">
@@ -81,8 +197,9 @@ const ContextMenu = ({ file }) => {
 
           <li
             className="contextMenuItem"
-            data-bs-toggle="modal"
-            data-bs-target="#staticShareModal"
+            onClick={handleShow}
+            // data-bs-toggle="modal"
+            // data-bs-target="#staticShareModal"
           >
             <span className="dropdown-item items-center gap-2 py-2.5">
               <svg
@@ -119,9 +236,60 @@ const ContextMenu = ({ file }) => {
             </span>
           </li>
         </ul>
-
-        <FileSharingModal file={currentfile} />
       </div>
+
+      <Modal
+        show={show} // Controls visibility of the modal
+        onHide={handleClose} // Closes the modal when the backdrop or close button is clicked
+        backdrop="static" // Ensures the backdrop is static (doesn't close on clicking backdrop)
+        keyboard={false} // Disables closing the modal with the keyboard (Esc key)
+      >
+        <Modal.Header>
+          <Modal.Title>Modal Title</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          {/* Search box */}
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Search by fullname or email"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          {filteredEmails.map((emailObj, index) => (
+            <div
+              className="form-check form-switch mb-2 d-flex items-center gap-2"
+              key={index}
+            >
+              <input
+                className="form-check-input"
+                type="checkbox"
+                role="switch"
+                style={{ width: "3em", height: "1.5em" }}
+                id={emailObj.email}
+                checked={selectedEmails.has(emailObj.email)}
+                onChange={() => handleCheckboxChange(emailObj.email)}
+              />
+
+              <label className="form-check-label" htmlFor={emailObj.email}>
+                {emailObj.fullname}
+                <span className="block text-xs">{emailObj.email}</span>
+              </label>
+            </div>
+          ))}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleFileShare}>
+            Share
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

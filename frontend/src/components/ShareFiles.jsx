@@ -26,11 +26,10 @@ const ShareFiles = () => {
         if (response.status === 200) {
           setResources(response.data.data);
           setHasFetched(true);
-          // console.log(response.data.data);
         }
       } catch (error) {
         console.error("Error fetching files:", error);
-        if (error.response.status === 403) {
+        if (error.response && error.response.status === 403) {
           localStorage.removeItem("token");
           window.location.reload();
         }
@@ -47,13 +46,13 @@ const ShareFiles = () => {
       </div>
       <div className="fileList">
         <div className="eachCol">
-          {resources?.length > 0 ? (
+          {resources && Object.keys(resources).length > 0 ? (
             <div className="fileList">
               <div className="">
-                {/* {console.log(resources)} */}
-                {resources.map((userData, userIndex) => (
-                  <SharedFilesCards key={userIndex} userData={userData} />
-                ))}
+                {Object.keys(resources).map((userEmail) => {
+                  const userData = resources[userEmail]; // Get user data for each email
+                  return <SharedFilesCards key={userEmail} userData={userData} email={userEmail} />;
+                })}
               </div>
             </div>
           ) : (
