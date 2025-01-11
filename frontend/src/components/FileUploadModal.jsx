@@ -13,12 +13,6 @@ const FileUploadModal = () => {
     setFile(event.target.files[0]); // Store the selected file
   };
 
-  useEffect(() => {
-    if (file) {
-      console.log("file", file);
-    }
-  }, [file]);
-
   const handleFileUpload = async (e) => {
     e.preventDefault();
 

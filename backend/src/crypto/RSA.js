@@ -1,96 +1,110 @@
 const NodeRSA = require("node-rsa");
+const crypto = require("crypto");
+const fs = require("fs");
 
-// KeyManager class to extract prime numbers, calculate N and totient, calculate private key using euclidean algorithm
+// KeyManager class to manage RSA keys in PKCS format
 class KeyManager {
-  constructor(aesKeyHex) {
+  constructor(keyDir) {
     this.keySize = 2048;
-    this.e = 65537n; // Common public exponent
-    this.generateKeys();
-    this.aesKeyHex = aesKeyHex;
-
-    // Generate new keys if they don't exist
-    this.d = this.calculatePrivateKey();
+    this.keyDir = keyDir;
+    fs.mkdirSync(keyDir, { recursive: true });
+    this.publicKeyPath = `${keyDir}/public_key.pem`;
+    this.privateKeyPath = `${keyDir}/private_key.pem`;
   }
 
-  // Generate RSA keys using the library
-  generateKeys() {
-    const key = new NodeRSA({ b: this.keySize });
+  // Ensure RSA keys exist or generate new ones
+  generateAndSaveKeyPairs() {
+    if (
+      !fs.existsSync(this.publicKeyPath) ||
+      !fs.existsSync(this.privateKeyPath)
+    ) {
+      const key = new NodeRSA({ b: this.keySize });
+      key.setOptions({ encryptionScheme: "pkcs1" });
 
-    // Extract prime numbers P and Q
-    const keyData = key.exportKey("components");
-    this.P = BigInt("0x" + keyData.p.toString("hex")); // Convert buffer to BigInt
-    this.Q = BigInt("0x" + keyData.q.toString("hex")); // Convert buffer to BigInt
-    this.N = this.P * this.Q;
-    this.totient = (this.P - 1n) * (this.Q - 1n);
-  }
+      const publicKeyPEM = key.exportKey("pkcs8-public-pem");
+      const privateKeyPEM = key.exportKey("pkcs1-pem");
 
-  // Extended Euclidean Algorithm to find modular inverse of e
-  extendedGCD(a, b) {
-    if (b === 0n) {
-      return { gcd: a, x: 1n, y: 0n };
+      fs.writeFileSync(this.publicKeyPath, publicKeyPEM);
+      fs.writeFileSync(this.privateKeyPath, privateKeyPEM);
     }
-
-    const { gcd, x, y } = this.extendedGCD(b, a % b);
-    return { gcd: gcd, x: y, y: x - (a / b) * y };
-  }
-
-  // Calculate the private key 'd' using e and the totient
-  calculatePrivateKey() {
-    const { gcd, x } = this.extendedGCD(this.e, this.totient);
-    if (gcd !== 1n) {
-      throw new Error(
-        "e and totient are not coprime, unable to calculate private key."
-      );
-    }
-
-    // Ensure x is positive
-    return ((x % this.totient) + this.totient) % this.totient;
   }
 }
 
 // Encryption and Decryption class inheriting from KeyManager
-class Encryption_and_Decryption extends KeyManager {
-  constructor(aesKeyHex) {
-    super(aesKeyHex); // Generate or load keys for this specific AES key
-  }
-
-  // Encrypt the AES key using the RSA public key
-  encryptAESKey(aesKey) {
-    const aesKeyBigInt = BigInt(`0x${aesKey}`); // Convert AES key to BigInt
+class Encryption_and_Decryption {
+  encryptAESKey(aesKey, publicKey) {
+    const aesKeyBigInt = BigInt(`0x${aesKey}`);
+    const { N, e } = this.extractPublicKeyComponents(publicKey);
     let ciphertext = 1n;
-    let base = aesKeyBigInt % this.N;
-    let exp = this.e;
+    let base = aesKeyBigInt % N;
+    let exp = e;
 
-    // Calculate ciphertext = (aesKeyBigInt ** e) % N
     while (exp > 0n) {
       if (exp % 2n === 1n) {
-        ciphertext = (ciphertext * base) % this.N;
+        ciphertext = (ciphertext * base) % N;
       }
       exp = exp >> 1n;
-      base = (base * base) % this.N;
+      base = (base * base) % N;
     }
 
-    return ciphertext;
+    const encryptedAesKey = Buffer.from(
+      ciphertext.toString(16),
+      "hex"
+    ).toString("base64");
+    return encryptedAesKey;
   }
 
   // Decrypt the AES key using the RSA private key
-  decryptAESKey(ciphertext) {
+  decryptAESKey(encryptedAesKey, privateKey) {
+    const ciphertext = BigInt(
+      `0x${Buffer.from(encryptedAesKey, "base64").toString("hex")}`
+    );
+    const { N, d } = this.extractPrivateKeyComponents(privateKey);
     let decrypted = 1n;
-    let base = ciphertext % this.N;
-    let exp = this.d;
+    let base = ciphertext % N;
+    let exp = d;
 
     // Calculate decrypted = (ciphertext ** d) % N
     while (exp > 0n) {
       if (exp % 2n === 1n) {
-        decrypted = (decrypted * base) % this.N;
+        decrypted = (decrypted * base) % N;
       }
       exp = exp >> 1n;
-      base = (base * base) % this.N;
+      base = (base * base) % N;
     }
 
-    const hexDecrypted = decrypted.toString(16).padStart(64, "0"); // Convert back to hex
-    return Buffer.from(hexDecrypted, "hex");
+    const hexDecrypted = decrypted.toString(16).replace(/^0+/, ""); // Remove leading zeros
+    return hexDecrypted;
+  }
+
+  // Extract N, e, and d from provided keys
+  extractPublicKeyComponents(key) {
+    const publicKey = crypto.createPublicKey(key);
+    const publicKeyDetails = publicKey.export({ format: "jwk" });
+
+    const N = BigInt(
+      `0x${Buffer.from(publicKeyDetails.n, "base64").toString("hex")}`
+    );
+    const e = BigInt(
+      `0x${Buffer.from(publicKeyDetails.e, "base64").toString("hex")}`
+    );
+
+    return { N, e };
+  }
+
+  extractPrivateKeyComponents(key) {
+    const privateKey = crypto.createPrivateKey(key);
+    const privateKeyDetails = privateKey.export({ format: "jwk" });
+
+    const N = BigInt(
+      `0x${Buffer.from(privateKeyDetails.n, "base64").toString("hex")}`
+    );
+    const d = BigInt(
+      `0x${Buffer.from(privateKeyDetails.d, "base64").toString("hex")}`
+    );
+
+    return { N, d };
   }
 }
 
-module.exports = Encryption_and_Decryption;
+module.exports = { Encryption_and_Decryption, KeyManager };

@@ -12,7 +12,7 @@ const FileCards = ({ file }) => {
         className="card-body d-flex flex-column justify-content-between align-items-center"
         title={file.filename}
       >
-        <ContextMenu file={{ file }} />
+        <ContextMenu key={file._id} file={file} />
 
         <div className="fileIcon mx-auto w-2/5">
           <img

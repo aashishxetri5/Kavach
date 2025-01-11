@@ -2,6 +2,8 @@ const User = require("../model/User.model");
 const crypto = require("crypto");
 
 const emailService = require("./Email.service");
+const Sharing = require("../model/Sharing.model");
+const { KeyManager } = require("../crypto/RSA");
 
 const createUser = async (user) => {
   try {
@@ -29,6 +31,9 @@ const createUser = async (user) => {
       role: user.role.toUpperCase(),
     });
 
+    const keyManager = new KeyManager(`C:/SecretKeys/${newUser.username}`);
+    keyManager.generateAndSaveKeyPairs();
+
     try {
       await emailService.sendEmail(
         user.email,
@@ -55,6 +60,7 @@ const createUser = async (user) => {
       message: "User created successfully",
     };
   } catch (error) {
+    console.error(error);
     return {
       success: false,
       message: error.message,
@@ -96,4 +102,61 @@ const getUserDetails = async (userId) => {
   }
 };
 
-module.exports = { createUser, getUsers, getUserDetails };
+const getAllUserEmails = async (userId) => {
+  try {
+    const emails = await User.find({ _id: { $ne: userId } }).select(
+      "email fullname"
+    );
+    return {
+      success: true,
+      data: emails,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};
+
+const getSharedUsers = async (fileId) => {
+  try {
+    const sharingRecord = await Sharing.findOne({ file: fileId }).populate(
+      "sharedWith",
+      "email fullname"
+    );
+
+    if (!sharingRecord) {
+      return {
+        success: true,
+        message: "No sharing record found for this file.",
+        sharedWith: [],
+      };
+    }
+
+    const sharedWithUsers = sharingRecord.sharedWith.map((user) => ({
+      email: user.email,
+      fullname: user.fullname,
+    }));
+
+    return {
+      success: true,
+      sharedWith: sharedWithUsers,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while retrieving the shared users.",
+      sharedWith: [],
+    };
+  }
+};
+
+module.exports = {
+  createUser,
+  getUsers,
+  getUserDetails,
+  getAllUserEmails,
+  getSharedUsers,
+};
