@@ -51,7 +51,7 @@ const TopBar = () => {
           </form>
         </div>
         <div className="right flex items-center gap-3 cursor-pointer">
-          <div
+          {/* <div
             className="settings-ico"
             data-bs-toggle="modal"
             data-bs-target="#settings"
@@ -126,7 +126,7 @@ const TopBar = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="userdd dropdown">
             <div

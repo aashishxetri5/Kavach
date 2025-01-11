@@ -24,12 +24,6 @@ const validateUserCredentials = async (email, password, existingUserId) => {
       return { success: false, message: "Invalid password" };
     }
 
-    // Check if the user is already logged in
-    // if(existingUserId === user._id) {
-    //   console.log(existingUserId, user._id);
-    //   return { success: false, message: "User already logged in" };
-    // }
-
     // Generate JWT token
     const token = jwt.sign(
       {
