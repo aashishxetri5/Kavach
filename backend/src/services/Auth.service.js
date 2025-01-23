@@ -6,7 +6,7 @@ const User = require("../model/User.model");
 const validateUserCredentials = async (email, password, existingUserId) => {
   try {
     const user = await User.findOne({ email }).select(
-      "name username role password"
+      "name username profilePic role password"
     );
 
     if (!user) {
@@ -29,6 +29,7 @@ const validateUserCredentials = async (email, password, existingUserId) => {
       {
         userId: user._id,
         username: user.username,
+        profile: user.profilePic,
         role: user.role,
       },
       process.env.JWT_SECRET,

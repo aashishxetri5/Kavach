@@ -37,9 +37,9 @@ const AllFiles = () => {
   if (loading) return <Spinners />;
 
   return (
-    <div className="">
+    <div className="select-none">
       <div className="title">
-        <h2 className="text-2xl mb-3 mt-1">All Files</h2>
+        <h2 className="text-2xl mb-2 mt-1">All Files</h2>
       </div>
       <div className="fileList">
         <div className="flex flex-wrap items-center gap-4 w-full">
@@ -47,8 +47,11 @@ const AllFiles = () => {
             Array.isArray(files) &&
             files.map((file) => <FileCards key={file._id} file={file} />)
           ) : (
-            <div className="text-center w-full">
-              <h2 className="text-2xl">No files found</h2>
+            <div className=" w-full ">
+              <p className="">
+                It looks empty here!! Upload files from the <code className="cursor-pointer text-xl">+New</code> button on the
+                sidebar.
+              </p>
             </div>
           )}
         </div>

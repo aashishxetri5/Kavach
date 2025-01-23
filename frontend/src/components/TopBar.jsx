@@ -7,6 +7,7 @@ import { jwtDecode } from "jwt-decode";
 import logo from "../logo.svg";
 
 const TopBar = () => {
+  const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState(null);
   const [role, setRole] = useState(null);
 
@@ -19,6 +20,8 @@ const TopBar = () => {
     }
 
     const decodedToken = jwtDecode(token);
+
+    setProfile(decodedToken.profile);
     setUsername(decodedToken.username);
     setRole(decodedToken.role);
 
@@ -136,9 +139,14 @@ const TopBar = () => {
               aria-expanded="false"
             >
               <img
-                src="https://dummyimage.com/400x400/d0d0d0/fff"
-                alt=""
-                style={{ height: "100%", width: "100%", borderRadius: "50%" }}
+                src={profile}
+                alt="Profile"
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
               />
             </div>
             <ul className="dropdown-menu">

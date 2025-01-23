@@ -62,7 +62,7 @@ const SideBar = () => {
               <span className="ms-2">All Files</span>
             </Link>
           </li>
-          <li className="linkitem">
+          {/* <li className="linkitem">
             <Link to="/directories">
               <svg
                 width="24"
@@ -78,7 +78,7 @@ const SideBar = () => {
 
               <span className="ms-2">Directories</span>
             </Link>
-          </li>
+          </li> */}
           <li className="linkitem">
             <Link to="/shared">
               <svg

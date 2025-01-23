@@ -81,7 +81,7 @@ const UserSettings = () => {
       if (response.status === 200) {
         alert("Profile updated successfully!");
         // localStorage.removeItem("token");
-        // window.location.reload();
+        window.location.reload();
       } else {
         alert("Failed to update profile.");
       }

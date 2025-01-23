@@ -55,7 +55,7 @@ const DashboardPage = () => {
           <Routes>
             <Route path="/" exact Component={Home} />
             <Route path="/files" exact Component={AllFiles} />
-            <Route path="/directories" exact Component={Directories} />
+            {/* <Route path="/directories" exact Component={Directories} /> */}
             <Route path="/shared" exact Component={Shared} />
             <Route path="/bin" exact Component={Bin} />
 
