@@ -1,5 +1,7 @@
 const User = require("../model/User.model");
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 
 const emailService = require("./Email.service");
 const Sharing = require("../model/Sharing.model");
@@ -88,7 +90,9 @@ const getUsers = async (currentUser) => {
 
 const getUserDetails = async (userId) => {
   try {
-    const user = await User.findById(userId).select("fullname username");
+    const user = await User.findById(userId).select(
+      "fullname email profilePic"
+    );
 
     return {
       success: true,
@@ -153,10 +157,96 @@ const getSharedUsers = async (fileId) => {
   }
 };
 
+const updateUser = async (userId, { fullname, email, profilePicture }) => {
+  try {
+    const updateData = { fullname, email };
+
+    if (profilePicture) {
+      const uploadsDir = path.join(__dirname, "../../profile-pictures");
+
+      // Ensure the uploads directory exists
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Save the file, replace the existing file if it exists
+      const fileName = `${userId}.${profilePicture.name.split(".").pop()}`;
+      const filePath = path.join(uploadsDir, fileName);
+
+      fs.writeFileSync(filePath, profilePicture.data);
+
+      // Update the profile picture path in the database
+      updateData.profilePic = `${process.env.BASE_URL}/profile-pictures/${fileName}`;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      throw new Error("User not found.");
+    }
+
+    return updatedUser;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};
+
+const changePassword = async (userId, { oldPassword, newPassword }) => {
+  try {
+    const user = await User.findById(userId).select("password");
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found.",
+      };
+    }
+
+    const hashedOldPassword = crypto
+      .createHash("sha256")
+      .update(oldPassword)
+      .digest("hex");
+
+    const isPasswordMatch = user.password === hashedOldPassword;
+
+    if (!isPasswordMatch) {
+      return {
+        success: false,
+        message: "Incorrect old password.",
+      };
+    }
+
+    user.password = crypto
+      .createHash("sha256")
+      .update(newPassword)
+      .digest("hex");
+
+    await user.save();
+
+    return {
+      success: true,
+      message: "Password updated successfully.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};
+
 module.exports = {
   createUser,
   getUsers,
   getUserDetails,
   getAllUserEmails,
   getSharedUsers,
+  updateUser,
+  changePassword,
 };

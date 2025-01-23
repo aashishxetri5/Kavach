@@ -1,11 +1,11 @@
 const File = require("../model/File.model");
 const Sharing = require("../model/Sharing.model");
-const mongoose = require("mongoose");
 const {
   getExtensionFromMimeType,
 } = require("../utils/EquivalentMimeTypes.util");
 
 const fs = require("fs");
+const path = require("path");
 const AES = require("../crypto/AES");
 const SHA256 = require("../crypto/sha256");
 const User = require("../model/User.model");

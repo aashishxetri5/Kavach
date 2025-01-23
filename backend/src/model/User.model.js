@@ -24,6 +24,12 @@ const userSchema = new mongoose.Schema({
     enum: ["ADMIN", "EMPLOYEE"],
     required: true,
   },
+  profilePic: {
+    type: String,
+    default: function () {
+      return `https://ui-avatars.com/api/?name=${this.fullname}&background=e74c3c&color=f0f3f4&bold=true`;
+    },
+  },
   joined_at: {
     type: Date,
     default: Date.now,

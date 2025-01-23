@@ -63,10 +63,53 @@ const fetchSharedUsers = async (fileId) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { fullname, email } = req.body;
+    const profilePicture = req.files?.profilePicture;
+
+    const updatedUser = await userService.updateUser(userId, {
+      fullname,
+      email,
+      profilePicture,
+    });
+
+    res.status(200).json({
+      message: "Profile updated successfully.",
+      data: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const updatePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { oldPassword, newPassword } = req.body;
+
+    const response = await userService.changePassword(userId, {
+      oldPassword,
+      newPassword,
+    });
+
+    if (!response.success) {
+      return res.status(400).json(response);
+    }
+
+    return res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   userRegistration,
   fetchUserList,
   getUserById,
   fetchEmails,
   fetchSharedUsers,
+  updateProfile,
+  updatePassword,
 };

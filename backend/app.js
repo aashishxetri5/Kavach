@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const session = require("express-session");
-const flash = require("connect-flash");
+const path = require("path");
 const MongoStore = require("connect-mongo");
 const fileUpload = require("express-fileupload");
 require("dotenv").config();
@@ -30,6 +30,11 @@ setupAdminUser();
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  "/profile-pictures",
+  express.static(path.join(__dirname, "/profile-pictures"))
+);
 
 // Middleware to handle file uploads
 app.use(fileUpload());

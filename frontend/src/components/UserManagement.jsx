@@ -37,7 +37,7 @@ const UserManagement = () => {
   };
 
   useEffect(() => {
-    document.title = "Kavach | Admin Dashboard";
+    document.title = "Kavach | User Management";
 
     const checkUserRole = async () => {
       try {
@@ -126,7 +126,7 @@ const UserManagement = () => {
               <div className="modal-content">
                 <div className="modal-header">
                   <h1 className="modal-title fs-5" id="newuserbtnLabel">
-                    Modal title
+                    New User
                   </h1>
                   <button
                     type="button"

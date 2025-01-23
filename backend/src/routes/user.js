@@ -8,6 +8,8 @@ const {
   fetchUserList,
   getUserById,
   fetchEmails,
+  updateProfile,
+  updatePassword,
 } = require("../controllers/User.controller");
 
 router.post("/register", authenticateToken, userRegistration);
@@ -18,4 +20,7 @@ router.get("/loggedInUser", authenticateToken, getUserById);
 
 router.get("/emails", authenticateToken, fetchEmails);
 
+router.post("/updateProfile", authenticateToken, updateProfile);
+
+router.post("/change-password", authenticateToken, updatePassword);
 module.exports = router;

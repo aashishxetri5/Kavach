@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 /backend/uploads/
+backend/src/services/enc-dec
+backend/profile-pictures

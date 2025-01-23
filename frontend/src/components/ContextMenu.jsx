@@ -245,7 +245,7 @@ const ContextMenu = ({ file }) => {
         keyboard={false} // Disables closing the modal with the keyboard (Esc key)
       >
         <Modal.Header>
-          <Modal.Title>Modal Title</Modal.Title>
+          <Modal.Title>Share this file to</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
