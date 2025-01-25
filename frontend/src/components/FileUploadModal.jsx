@@ -1,12 +1,20 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const FileUploadModal = () => {
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(true);
 
   const handleCheckboxChange = () => {
-    setIsChecked((prev) => !prev);
+    setIsChecked((prev) => {
+      const statusText = !prev
+        ? "File will be encrypted"
+        : "File won't encrypted";
+
+      document.getElementById("fileEncStatus").innerText = statusText;
+
+      return !prev;
+    });
   };
 
   const handleFileChange = (event) => {
@@ -82,6 +90,9 @@ const FileUploadModal = () => {
                   onChange={handleFileChange}
                   required
                 />
+                <span className="text-red-800 text-xs" id="fileEncStatus">
+                  File will be encrypted
+                </span>
               </div>
 
               <div
