@@ -1,0 +1,122 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+const BinContextMenu = ({ file }) => {
+  const [selectedFileId, setSelectedFileId] = useState(null);
+
+  const handleIndividualDelete = async () => {
+    try {
+      const instance = axios.create({
+        baseURL: "http://localhost:3000",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await instance.post("/api/file/bin/delete", {
+        fileId: file._id,
+      });
+
+      if (response.status === 200) {
+        alert(response.data.message);
+        window.location.reload();
+      }
+    } catch (error) {
+      alert(error.response.data.message);
+    }
+  };
+
+  const restoreIndividualFile = async () => {
+    try {
+      const instance = axios.create({
+        baseURL: "http://localhost:3000",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await instance.post("/api/file/restore", {
+        fileId: file._id,
+      });
+
+      if (response.status === 200) {
+        alert(response.data.message);
+        window.location.reload();
+      }
+    } catch (error) {
+      alert(error.response.data.message);
+    }
+  };
+
+  useEffect(() => {
+    setSelectedFileId(file._id);
+  }, [selectedFileId, file._id]);
+
+  return (
+    <div className="d-flex justify-content-between align-items-center ms-auto">
+      <div className="dropdown ms-auto">
+        <svg
+          className="cursor-pointer"
+          width="20"
+          height="20"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <path
+            d="M9.75 8C9.75 8.34612 9.64736 8.68446 9.45507 8.97225C9.26278 9.26003 8.98947 9.48434 8.6697 9.61679C8.34993 9.74924 7.99806 9.7839 7.65859 9.71637C7.31913 9.64885 7.00731 9.48218 6.76256 9.23744C6.51782 8.9927 6.35115 8.68087 6.28363 8.34141C6.2161 8.00194 6.25076 7.65007 6.38321 7.3303C6.51567 7.01053 6.73997 6.73722 7.02775 6.54493C7.31554 6.35264 7.65388 6.25 8 6.25C8.46413 6.25 8.90925 6.43437 9.23744 6.76256C9.56563 7.09075 9.75 7.53587 9.75 8ZM3 6.25C2.65388 6.25 2.31554 6.35264 2.02775 6.54493C1.73997 6.73722 1.51566 7.01053 1.38321 7.3303C1.25076 7.65007 1.2161 8.00194 1.28363 8.34141C1.35115 8.68087 1.51782 8.9927 1.76256 9.23744C2.00731 9.48218 2.31913 9.64885 2.65859 9.71637C2.99806 9.7839 3.34993 9.74924 3.6697 9.61679C3.98947 9.48434 4.26278 9.26003 4.45507 8.97225C4.64737 8.68446 4.75 8.34612 4.75 8C4.75 7.53587 4.56563 7.09075 4.23744 6.76256C3.90925 6.43437 3.46413 6.25 3 6.25ZM13 6.25C12.6539 6.25 12.3155 6.35264 12.0278 6.54493C11.74 6.73722 11.5157 7.01053 11.3832 7.3303C11.2508 7.65007 11.2161 8.00194 11.2836 8.34141C11.3512 8.68087 11.5178 8.9927 11.7626 9.23744C12.0073 9.48218 12.3191 9.64885 12.6586 9.71637C12.9981 9.7839 13.3499 9.74924 13.6697 9.61679C13.9895 9.48434 14.2628 9.26003 14.4551 8.97225C14.6474 8.68446 14.75 8.34612 14.75 8C14.75 7.77019 14.7047 7.54262 14.6168 7.3303C14.5288 7.11798 14.3999 6.92507 14.2374 6.76256C14.0749 6.60006 13.882 6.47116 13.6697 6.38321C13.4574 6.29526 13.2298 6.25 13 6.25Z"
+            fill="black"
+          />
+        </svg>
+        <ul className="dropdown-menu cursor-pointer user-select-none py-2">
+          <li className="contextMenuItem" onClick={restoreIndividualFile}>
+            <span className="dropdown-item items-center gap-2 py-2.5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={24}
+                height={24}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="#000"
+                  className="contextMenuIcon"
+                  d="M12 16c1.671 0 3-1.331 3-3s-1.329-3-3-3s-3 1.331-3 3s1.329 3 3 3"
+                ></path>
+                <path
+                  fill="#000"
+                  className="contextMenuIcon"
+                  d="M20.817 11.186a8.9 8.9 0 0 0-1.355-3.219a9 9 0 0 0-2.43-2.43a9 9 0 0 0-3.219-1.355a9 9 0 0 0-1.838-.18V2L8 5l3.975 3V6.002c.484-.002.968.044 1.435.14a7 7 0 0 1 2.502 1.053a7 7 0 0 1 1.892 1.892A6.97 6.97 0 0 1 19 13a7 7 0 0 1-.55 2.725a7 7 0 0 1-.644 1.188a7 7 0 0 1-.858 1.039a7.03 7.03 0 0 1-3.536 1.907a7.1 7.1 0 0 1-2.822 0a7 7 0 0 1-2.503-1.054a7 7 0 0 1-1.89-1.89A7 7 0 0 1 5 13H3a9 9 0 0 0 1.539 5.034a9.1 9.1 0 0 0 2.428 2.428A8.95 8.95 0 0 0 12 22a9 9 0 0 0 1.814-.183a9 9 0 0 0 3.218-1.355a9 9 0 0 0 1.331-1.099a9 9 0 0 0 1.1-1.332A8.95 8.95 0 0 0 21 13a9 9 0 0 0-.183-1.814"
+                ></path>
+              </svg>
+              <span>Recover</span>
+            </span>
+          </li>
+
+          <li className="contextMenuItem" onClick={handleIndividualDelete}>
+            <span className="dropdown-item items-center gap-2 py-2.5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={20}
+                height={20}
+                viewBox="0 0 448 512"
+              >
+                <path
+                  fill="black"
+                  className="contextMenuIcon"
+                  d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0h120.4c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64s14.3-32 32-32h96zM32 128h384v320c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64zm96 64c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16m96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16m96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16"
+                />
+              </svg>
+              <span>Delete</span>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default BinContextMenu;

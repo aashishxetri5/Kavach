@@ -6,6 +6,7 @@ const path = require("path");
 const MongoStore = require("connect-mongo");
 const fileUpload = require("express-fileupload");
 require("dotenv").config();
+require('./cronjob');
 
 const setupAdminUser = require("./initialSetup");
 
@@ -49,6 +50,9 @@ const corsOptions = {
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
+
+// Setup cron jobs
+
 
 // Routes
 const routes = require("./src/routes");

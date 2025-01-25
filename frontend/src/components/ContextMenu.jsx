@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import axios from "axios";
-// import FileSharingModal from "./FileSharingModal";
 
 const ContextMenu = ({ file }) => {
   const [selectedFileId, setSelectedFileId] = useState(null);
@@ -89,6 +88,29 @@ const ContextMenu = ({ file }) => {
         return;
       }
       alert("Error downloading file. Please try again later.");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const instance = axios.create({
+        baseURL: "http://localhost:3000",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await instance.post("/api/file/delete", {
+        fileId: file._id,
+      });
+
+      if (response.status === 200) {
+        alert(response.data.message);
+        window.location.reload();
+      }
+    } catch (error) {
+      alert(error.response.data.message);
     }
   };
 
@@ -253,7 +275,7 @@ const ContextMenu = ({ file }) => {
             </span>
           </li>
 
-          <li className="contextMenuItem">
+          <li className="contextMenuItem" onClick={handleDelete}>
             <span className="dropdown-item items-center gap-2 py-2.5">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

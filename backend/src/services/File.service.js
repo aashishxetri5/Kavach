@@ -14,7 +14,11 @@ const { Encryption_and_Decryption } = require("../crypto/RSA");
 const fetchDisplayFiles = async (userId) => {
   try {
     const encryptedFiles = await File.find({
-      $and: [{ owner: userId }, { encryptedKey: { $nin: [null, ""] } }],
+      $and: [
+        { owner: userId },
+        { encryptedKey: { $nin: [null, ""] } },
+        { is_deleted: false },
+      ],
     })
       .sort({ createdAt: -1 })
       .limit(4)
@@ -135,7 +139,7 @@ function saveNormalFile(path, filename, fileData) {
 // Download a file
 const downloadFile = async (fileId, loggedInUser) => {
   try {
-    const file = await File.findById(fileId);
+    const file = await File.findOne({ _id: fileId, is_deleted: false });
 
     if (!file) {
       return {
@@ -175,6 +179,15 @@ const downloadFile = async (fileId, loggedInUser) => {
 
     const decryptedDataBuffer = Buffer.from(decryptedHexData, "hex");
 
+    //verify hash
+    const hash = new SHA256().hash(decryptedDataBuffer);
+    if (hash !== file.hash) {
+      return {
+        success: false,
+        message: "File has been tampered with",
+      };
+    }
+
     return {
       data: decryptedDataBuffer,
       fileName: file.filename, // Original file name or whatever you want to return
@@ -190,7 +203,7 @@ const downloadFile = async (fileId, loggedInUser) => {
 
 const downloadNormalFile = async (fileId, userId) => {
   try {
-    const file = await File.findById(fileId);
+    const file = await File.findOne({ _id: fileId, is_deleted: false });
 
     if (!file) {
       return {
@@ -227,7 +240,7 @@ const downloadNormalFile = async (fileId, userId) => {
 // Get all files by user
 const getFilesByUser = async (userId) => {
   try {
-    const files = await File.find({ owner: userId }).select(
+    const files = await File.find({ owner: userId, is_deleted: false }).select(
       "_id filename fileType filePath createdAt"
     );
 
@@ -312,6 +325,7 @@ const updateShareList = async (fileId, emails, userId) => {
   }
 };
 
+// Get all shared files 
 const getSharedFiles = async (userId) => {
   try {
     const sharingRecords = await Sharing.find({
@@ -365,6 +379,168 @@ const getSharedFiles = async (userId) => {
   }
 };
 
+// trash a file by moving it to trash folder
+const deleteFile = async (fileId, username) => {
+  try {
+    const file = await File.findById(fileId);
+
+    if (!file) return res.status(404).send("File not found");
+
+    const trashPath = path.join("trash", username);
+    if (!fs.existsSync(trashPath)) {
+      fs.mkdirSync(trashPath, { recursive: true });
+    }
+
+    //move file to path
+    fs.renameSync(
+      `${file.filePath}/${file.filename}`,
+      `${trashPath}/${file.filename}`
+    );
+
+    file.filePath = trashPath;
+    file.is_deleted = true;
+    file.deleted_at = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    await file.save();
+
+    //remove sharing records
+    await Sharing.deleteMany({ file: file._id });
+
+    return {
+      success: true,
+      message: "File trashed successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while trashing the file",
+    };
+  }
+};
+
+// get all trashed files
+const getTrashedFile = async (userId) => {
+  try {
+    const files = await File.find({
+      $and: [{ owner: userId }, { is_deleted: true }],
+    }).select("_id filename fileType filePath createdAt");
+
+    files.forEach((file) => {
+      file.fileType = getExtensionFromMimeType(file.fileType);
+    });
+
+    return { success: true, files };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while fetching trashed files",
+    };
+  }
+};
+
+// delete all files in trash
+const cleanTrash = async (userId) => {
+  try {
+    const filesToDelete = await File.find({
+      $and: [{ owner: userId }, { is_deleted: true }],
+    });
+
+    filesToDelete.forEach(async (file) => {
+      try {
+        if (fs.existsSync(`${file.filePath}/${file.filename}`)) {
+          fs.unlinkSync(`${file.filePath}/${file.filename}`);
+        }
+
+        await File.deleteOne({ _id: file._id });
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    return {
+      success: true,
+      message: "Trash cleaned successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while cleaning the trash",
+    };
+  }
+};
+
+// restore individual file from trash
+const restoreFile = async (fileId, username) => {
+  try {
+    const file = await File.findById(fileId).select(
+      "_id filename filePath is_deleted deleted_at"
+    );
+
+    if (!file) return res.status(404).send("File not found");
+
+    const path = `./uploads/${username}`;
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path, { recursive: true });
+    }
+
+    //move file to path
+    fs.renameSync(
+      `${file.filePath}/${file.filename}`,
+      `${path}/${file.filename}`
+    );
+
+    file.filePath = path;
+    file.is_deleted = false;
+    file.deleted_at = null;
+
+    await file.save();
+
+    return {
+      success: true,
+      message: "File restored successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while restoring the file",
+    };
+  }
+};
+
+// delete individual file permanently from trash
+const permanentFileDeletion = async (fileId, userId) => {
+  try {
+    const file = await File.findOne({ _id: fileId, is_deleted: true });
+
+    if (!file) return res.status(404).send("File not found");
+
+    if (file.owner.toString() !== userId) {
+      return res.status(401).send("Unauthorized access");
+    }
+
+    if (fs.existsSync(`${file.filePath}/${file.filename}`)) {
+      fs.unlinkSync(`${file.filePath}/${file.filename}`);
+    }
+
+    await File.deleteOne({ _id: file._id });
+
+    return {
+      success: true,
+      message: "File deleted permanently",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "An error occurred while deleting the file",
+    };
+  }
+};
+
 module.exports = {
   fetchDisplayFiles,
   uploadFile,
@@ -373,4 +549,9 @@ module.exports = {
   getFilesByUser,
   updateShareList,
   getSharedFiles,
+  deleteFile,
+  getTrashedFile,
+  cleanTrash,
+  restoreFile,
+  permanentFileDeletion,
 };

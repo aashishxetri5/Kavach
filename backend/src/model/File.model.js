@@ -31,12 +31,21 @@ const fileSchema = new Schema({
     type: String,
     default: null,
   }, //for integrity check
+  is_deleted: {
+    type: Boolean,
+    default: false,
+  },
+  deleted_at: {
+    type: Date,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-const FileModel = mongoose.model("File", fileSchema);
+fileSchema.index({ deleted_at: 1 }, { expireAfterSeconds: 1209600 });
 
+const FileModel = mongoose.model("File", fileSchema);
 module.exports = FileModel;

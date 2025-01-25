@@ -6,11 +6,16 @@ const { authenticateToken } = require("../middleware/TokenValidation");
 const {
   getFilesForHome,
   upload,
-  getAllFiles,
   download,
   downloadNormalFiles,
+  getAllFiles,
   shareFiles,
   fetchFilesFromShared,
+  fileDeleteAction,
+  getTrashedFileAction,
+  restoreFileAction,
+  fileDeletePermanentAction,
+  cleanTrash,
 } = require("../controllers/File.controller");
 
 const { fetchSharedUsers } = require("../controllers/User.controller");
@@ -39,5 +44,15 @@ router.get("/sharedWith/:fileId", authenticateToken, async (req, res) => {
 });
 
 router.get("/shared", authenticateToken, fetchFilesFromShared);
+
+router.post("/delete", authenticateToken, fileDeleteAction);
+
+router.get("/bin", authenticateToken, getTrashedFileAction);
+
+router.post("/restore", authenticateToken, restoreFileAction);
+
+router.post("/bin/empty", authenticateToken, cleanTrash);
+
+router.post("/bin/delete", authenticateToken, fileDeletePermanentAction);
 
 module.exports = router;

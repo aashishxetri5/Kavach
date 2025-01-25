@@ -173,6 +173,80 @@ const fetchFilesFromShared = async (req, res) => {
   }
 };
 
+const fileDeleteAction = async (req, res) => {
+  const { fileId } = req.body;
+
+  try {
+    const response = await fileService.deleteFile(fileId, req.user.username);
+
+    if (response.success === true) {
+      return res.status(200).send(response);
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(error.message);
+  }
+};
+
+const getTrashedFileAction = async (req, res) => {
+  try {
+    const response = await fileService.getTrashedFile(req.user.userId);
+
+    if (response.success === true) res.status(200).send(response);
+    else throw new Error(response.message);
+  } catch (error) {
+    console.error(error);
+    res.status(400).send(error.message);
+  }
+};
+
+const restoreFileAction = async (req, res) => {
+  const { fileId } = req.body;
+
+  try {
+    const response = await fileService.restoreFile(fileId, req.user.username);
+
+    if (response.success === true) {
+      return res.status(200).send(response);
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(error.message);
+  }
+};
+
+// Delete a file permanently
+const fileDeletePermanentAction = async (req, res) => {
+  const { fileId } = req.body;
+
+  try {
+    const response = await fileService.permanentFileDeletion(
+      fileId,
+      req.user.userId
+    );
+
+    if (response.success === true) {
+      return res.status(200).send(response);
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(error.message);
+  }
+};
+
+const cleanTrash = async (req, res) => {
+  try {
+    const response = await fileService.cleanTrash(req.user.userId);
+
+    if (response.success === true) {
+      return res.status(200).send(response);
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(error.message);
+  }
+};
+
 module.exports = {
   getFilesForHome,
   upload,
@@ -181,4 +255,9 @@ module.exports = {
   getAllFiles,
   shareFiles,
   fetchFilesFromShared,
+  fileDeleteAction,
+  getTrashedFileAction,
+  restoreFileAction,
+  fileDeletePermanentAction,
+  cleanTrash,
 };
