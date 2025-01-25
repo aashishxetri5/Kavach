@@ -2,7 +2,7 @@ const userService = require("../services/User.service");
 
 const userRegistration = async (req, res) => {
   try {
-    const response = await userService.createUser(req.body);
+    const response = await userService.createUser(req.body, req.user);
     if (!response.success) {
       return res.status(400).json(response);
     }

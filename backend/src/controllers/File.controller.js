@@ -177,7 +177,7 @@ const fileDeleteAction = async (req, res) => {
   const { fileId } = req.body;
 
   try {
-    const response = await fileService.deleteFile(fileId, req.user.username);
+    const response = await fileService.deleteFile(fileId, req.user.username, req.user.userId);
 
     if (response.success === true) {
       return res.status(200).send(response);
@@ -204,7 +204,7 @@ const restoreFileAction = async (req, res) => {
   const { fileId } = req.body;
 
   try {
-    const response = await fileService.restoreFile(fileId, req.user.username);
+    const response = await fileService.restoreFile(fileId, req.user.username, req.user.userId);
 
     if (response.success === true) {
       return res.status(200).send(response);
@@ -222,7 +222,8 @@ const fileDeletePermanentAction = async (req, res) => {
   try {
     const response = await fileService.permanentFileDeletion(
       fileId,
-      req.user.userId
+      req.user.userId,
+      req.user.username
     );
 
     if (response.success === true) {
@@ -236,7 +237,7 @@ const fileDeletePermanentAction = async (req, res) => {
 
 const cleanTrash = async (req, res) => {
   try {
-    const response = await fileService.cleanTrash(req.user.userId);
+    const response = await fileService.cleanTrash(req.user.userId, req.user.username);
 
     if (response.success === true) {
       return res.status(200).send(response);

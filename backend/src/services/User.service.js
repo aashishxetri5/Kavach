@@ -7,7 +7,10 @@ const emailService = require("./Email.service");
 const Sharing = require("../model/Sharing.model");
 const { KeyManager } = require("../crypto/RSA");
 
-const createUser = async (user) => {
+const { logActivity } = require("../services/Activity.service");
+const { logMessages } = require("../utils/LogMessages.util");
+
+const createUser = async (user, currentUser) => {
   try {
     const existingUser = await User.findOne({
       $or: [{ email: user.email }, { username: user.email.split("@")[0] }],
@@ -56,6 +59,14 @@ const createUser = async (user) => {
     }
 
     await newUser.save();
+
+    const message = logMessages.registration(newUser.username, newUser.role);
+    await logActivity(
+      currentUser.userId,
+      "Create",
+      newUser.username,
+      message
+    );
 
     return {
       success: true,
@@ -188,6 +199,9 @@ const updateUser = async (userId, { fullname, email, profilePicture }) => {
       throw new Error("User not found.");
     }
 
+    const message = logMessages.profileUpdate();
+    await logActivity(updatedUser._id, "Update", "", message);
+
     return updatedUser;
   } catch (error) {
     return {
@@ -199,7 +213,7 @@ const updateUser = async (userId, { fullname, email, profilePicture }) => {
 
 const changePassword = async (userId, { oldPassword, newPassword }) => {
   try {
-    const user = await User.findById(userId).select("password");
+    const user = await User.findById(userId).select("password username");
 
     if (!user) {
       return {
@@ -228,6 +242,9 @@ const changePassword = async (userId, { oldPassword, newPassword }) => {
       .digest("hex");
 
     await user.save();
+
+    const message = logMessages.passwordChange();
+    await logActivity(userId, "Update", "", message);
 
     return {
       success: true,

@@ -1,5 +1,8 @@
 const authService = require("../services/Auth.service");
 
+const { logActivity } = require("../services/Activity.service");
+const { logMessages } = require("../utils/LogMessages.util");
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -19,6 +22,10 @@ const logout = async (req, res) => {
       if (err) {
         return res.status(500).send({ title: "Server Error" });
       }
+
+      const message = logMessages.logout(req.user.username);
+      logActivity(req.user.userId, "logged out", "", message);
+      
       return res.sendStatus(200);
     });
   } catch (error) {

@@ -1,5 +1,4 @@
 const fs = require("fs");
-const path = require("path");
 const File = require("./src/model/File.model");
 
 const cron = require("node-cron");

@@ -6,6 +6,9 @@ const User = require("../model/User.model");
 const File = require("../model/File.model");
 const Phrase = require("../model/Phrase.model");
 
+const { logActivity } = require("../services/Activity.service");
+const { logMessages } = require("../utils/LogMessages.util");
+
 const SHA256 = require("../crypto/sha256");
 const emailService = require("../services/Email.service");
 
@@ -44,6 +47,9 @@ const validateUserCredentials = async (email, password) => {
       }
     );
 
+    const message = logMessages.login();
+    logActivity(user._id, "Login", "", message);
+
     return { success: true, token, userId: user._id };
   } catch (error) {
     console.error("Error in validateUserCredentials:", error);
@@ -54,9 +60,11 @@ const validateUserCredentials = async (email, password) => {
 const validatePhrase = async (phrase, userId) => {
   try {
     const userSentPhrase = new SHA256().hash(phrase);
-    const phraseDoc = await Phrase.findOne({ userId }).sort({ createdAt: -1 });
+    const phraseDoc = await Phrase.findOne({ userId })
+      .sort({ createdAt: -1 })
+      .select("phrase");
 
-    if (phraseDoc === userSentPhrase) {
+    if (phraseDoc.phrase === userSentPhrase) {
       return { success: true };
     } else {
       throw new Error("Invalid phrase!! Access Denied.");
@@ -74,7 +82,7 @@ const sendPhraseToUser = async (userId, fileId) => {
       separator: "-",
     });
 
-    const hashedPhrase = new SHA256().hash(phrase);
+    const hashedPhrase = new SHA256().hash(phrase[0]);
 
     const newPhrase = new Phrase({
       userId,

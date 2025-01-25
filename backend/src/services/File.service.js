@@ -11,6 +11,9 @@ const SHA256 = require("../crypto/sha256");
 const User = require("../model/User.model");
 const { Encryption_and_Decryption } = require("../crypto/RSA");
 
+const { logActivity } = require("../services/Activity.service");
+const { logMessages } = require("../utils/LogMessages.util");
+
 const fetchDisplayFiles = async (userId) => {
   try {
     const encryptedFiles = await File.find({
@@ -97,11 +100,15 @@ const uploadFile = async (file, encrypted, loggedInUser) => {
       fileData.filename = `${file.name}.aes`;
       saveEncryptedFile(path, fileData.filename, encryptedDataBuffer);
       await fileData.save();
+
       return { fileData, cipheredFileData };
     }
 
     saveNormalFile(path, fileData.filename, file.data);
     await fileData.save();
+
+    const message = logMessages.fileUpload(file.name);
+    await logActivity(loggedInUser.userId, "Create", file.name, message);
   } catch (error) {
     console.error(error);
     return {
@@ -188,6 +195,14 @@ const downloadFile = async (fileId, loggedInUser) => {
       };
     }
 
+    const message = logMessages.fileDownload(file.filename.replace(".aes", ""));
+    await logActivity(
+      loggedInUser.userId,
+      "Download_E",
+      file.filename,
+      message
+    );
+
     return {
       data: decryptedDataBuffer,
       fileName: file.filename, // Original file name or whatever you want to return
@@ -223,6 +238,9 @@ const downloadNormalFile = async (fileId, userId) => {
     }
 
     const fileData = fs.readFileSync(`${file.filePath}/${file.filename}`);
+
+    const message = logMessages.fileDownload(file.filename);
+    await logActivity(loggedInUser.userId, "Download", file.filename, message);
 
     return {
       data: fileData,
@@ -325,7 +343,7 @@ const updateShareList = async (fileId, emails, userId) => {
   }
 };
 
-// Get all shared files 
+// Get all shared files
 const getSharedFiles = async (userId) => {
   try {
     const sharingRecords = await Sharing.find({
@@ -380,7 +398,7 @@ const getSharedFiles = async (userId) => {
 };
 
 // trash a file by moving it to trash folder
-const deleteFile = async (fileId, username) => {
+const deleteFile = async (fileId, username, userId) => {
   try {
     const file = await File.findById(fileId);
 
@@ -405,6 +423,9 @@ const deleteFile = async (fileId, username) => {
 
     //remove sharing records
     await Sharing.deleteMany({ file: file._id });
+
+    const message = logMessages.fileShare(file.filename);
+    await logActivity(userId, "Delete", file.filename, message);
 
     return {
       success: true,
@@ -441,7 +462,7 @@ const getTrashedFile = async (userId) => {
 };
 
 // delete all files in trash
-const cleanTrash = async (userId) => {
+const cleanTrash = async (userId, username) => {
   try {
     const filesToDelete = await File.find({
       $and: [{ owner: userId }, { is_deleted: true }],
@@ -459,6 +480,9 @@ const cleanTrash = async (userId) => {
       }
     });
 
+    const message = logMessages.trashCleanup();
+    await logActivity(userId, "Trash", file.filename, message);
+
     return {
       success: true,
       message: "Trash cleaned successfully",
@@ -473,7 +497,7 @@ const cleanTrash = async (userId) => {
 };
 
 // restore individual file from trash
-const restoreFile = async (fileId, username) => {
+const restoreFile = async (fileId, username, userId) => {
   try {
     const file = await File.findById(fileId).select(
       "_id filename filePath is_deleted deleted_at"
@@ -498,6 +522,9 @@ const restoreFile = async (fileId, username) => {
 
     await file.save();
 
+    const message = logMessages.fileRestore(file.filename);
+    await logActivity(userId, "Trash", file.filename, message);
+
     return {
       success: true,
       message: "File restored successfully",
@@ -512,7 +539,7 @@ const restoreFile = async (fileId, username) => {
 };
 
 // delete individual file permanently from trash
-const permanentFileDeletion = async (fileId, userId) => {
+const permanentFileDeletion = async (fileId, userId, username) => {
   try {
     const file = await File.findOne({ _id: fileId, is_deleted: true });
 
@@ -527,6 +554,9 @@ const permanentFileDeletion = async (fileId, userId) => {
     }
 
     await File.deleteOne({ _id: file._id });
+
+    const message = logMessages.fileDelete(file.filename);
+    await logActivity(userId, "Trash", file.filename, message);
 
     return {
       success: true,

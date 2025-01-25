@@ -2,29 +2,31 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const activityLogSchema = new Schema({
-  action: {
-    type: String,
-    required: true,
-  }, // e.g., 'upload', 'download', 'decrypt', 'login'
   user: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  file: {
-    type: Schema.Types.ObjectId,
-    ref: "File",
+  action: {
+    type: String,
+    required: true,
+  }, // e.g., 'upload', 'download', 'decrypt', 'login', etc.
+  target: {
+    type: String,
     required: false,
   }, // For actions related to files - optional
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
   details: {
     type: String,
     required: false,
   }, // Additional info about the action
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+  expiresAt: { type: Date, required: true }, // Expiry field
 });
+
+activityLogSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const ActivityLog = mongoose.model("ActivityLog", activityLogSchema);
 module.exports = ActivityLog;
