@@ -1,6 +1,6 @@
 // Import necessary modules and services
-const FileService = require('../test_nayan/getFiles.service');
-const File = require('../src/model/File.model.js');
+const FileService = require('./getFiles.service.js');
+const File = require('../../src/model/File.model.js');
 
 // Mock all dependencies to avoid real interactions with file system, database.
 jest.mock('../src/model/File.model', () => ({

@@ -1,9 +1,9 @@
 // Import necessary modules and services
 const fs = require("fs"); 
-const { uploadFile } = require("../src/services/File.service"); 
-const File = require("../src/model/File.model");
-const AES = require("../src/crypto/AES"); 
-const SHA256 = require("../src/crypto/sha256"); 
+const { uploadFile } = require("../../src/services/File.service"); 
+const File = require("../../src/model/File.model");
+const AES = require("../../src/crypto/AES"); 
+const SHA256 = require("../../src/crypto/sha256"); 
 
 // Mock all dependencies to avoid real interactions with file system, database, or cryptography
 jest.mock("fs");

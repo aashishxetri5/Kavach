@@ -1,4 +1,4 @@
-const File = require('../src/model/File.model'); 
+const File = require('../../src/model/File.model'); 
 
 class FileService {
   static async getFilesByUser(userId) {
