@@ -1,9 +1,15 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+var randomWords = require("random-words");
 
 const User = require("../model/User.model");
+const File = require("../model/File.model");
+const Phrase = require("../model/Phrase.model");
 
-const validateUserCredentials = async (email, password, existingUserId) => {
+const SHA256 = require("../crypto/sha256");
+const emailService = require("../services/Email.service");
+
+const validateUserCredentials = async (email, password) => {
   try {
     const user = await User.findOne({ email }).select(
       "name username profilePic role password"
@@ -45,4 +51,67 @@ const validateUserCredentials = async (email, password, existingUserId) => {
   }
 };
 
-module.exports = { validateUserCredentials };
+const validatePhrase = async (phrase, userId) => {
+  try {
+    const userSentPhrase = new SHA256().hash(phrase);
+    const phraseDoc = await Phrase.findOne({ userId }).sort({ createdAt: -1 });
+
+    if (phraseDoc === userSentPhrase) {
+      return { success: true };
+    } else {
+      throw new Error("Invalid phrase!! Access Denied.");
+    }
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+const sendPhraseToUser = async (userId, fileId) => {
+  try {
+    const phrase = randomWords({
+      exactly: 1,
+      wordsPerString: 3,
+      separator: "-",
+    });
+
+    const hashedPhrase = new SHA256().hash(phrase);
+
+    const newPhrase = new Phrase({
+      userId,
+      fileId,
+      phrase: hashedPhrase,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    });
+
+    await newPhrase.save();
+
+    const userEmail = await User.findById(userId).select("email");
+
+    await emailService.sendEmail(
+      userEmail.email,
+      "Your secret phrase",
+      `<p>Hi,</p>
+      <p>We have received a request to download your file: ${(
+        await File.findById(fileId).select("filename")
+      ).filename.replace(
+        ".aes",
+        ""
+      )}. To proceed, please verify your identity by entering the following secret phrase:</p>
+
+      <p>Your secret phrase is: <b>${phrase}</b></p>
+
+      <p>This phrase will expire in 10 minutes.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+
+      <p>Thanks,</p>
+      `
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in sendPhraseToUser:", error);
+    return { success: false, message: "Something went wrong!! Try again." };
+  }
+};
+
+module.exports = { validateUserCredentials, validatePhrase, sendPhraseToUser };

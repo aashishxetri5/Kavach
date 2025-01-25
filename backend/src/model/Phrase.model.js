@@ -1,9 +1,13 @@
 const mongoose = require("mongoose");
 
 const phraseSchema = new mongoose.Schema({
-  email: { type: String, required: true },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   fileId: { type: String, required: true },
   phrase: { type: String, required: true },
+  createdAt: { type: Date, required: true, default: Date.now },
   expiresAt: { type: Date, required: true }, // TTL field
 });
 

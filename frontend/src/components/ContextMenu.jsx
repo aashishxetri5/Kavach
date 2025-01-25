@@ -11,6 +11,7 @@ const ContextMenu = ({ file }) => {
   const [selectedEmails, setSelectedEmails] = useState(new Set());
 
   const [show, setShow] = useState(false);
+
   const handleShow = () => {
     if (!file._id) {
       console.warn("Cannot open share modal: fileId is undefined.");
@@ -19,6 +20,7 @@ const ContextMenu = ({ file }) => {
     beginEmailTasks();
     setShow(true);
   };
+
   const handleClose = () => {
     setSearchQuery("");
     setSelectedEmails(new Set());
@@ -26,35 +28,68 @@ const ContextMenu = ({ file }) => {
   };
 
   const handleDownload = async () => {
-    const instance = axios.create({
-      baseURL: "http://localhost:3000",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
-      },
-    });
-    let url;
-    if (file.filename.includes(".aes")) {
-      url = `/api/file/download`;
-    } else {
-      url = `/api/file/normaldownload`;
-    }
-    const response = await instance.get(url, {
-      params: {
-        fileId: file._id, // Pass fileId as a query parameter
-      },
-      responseType: "blob",
-    });
+    try {
+      const instance = axios.create({
+        baseURL: "http://localhost:3000",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    const blob = await response.data;
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    if (file.filename.includes(".aes")) {
-      link.download = file.filename.replace(".aes", ""); // Set the default download file name
-    } else {
-      link.download = file.filename;
+      const emailSent = await instance.post(`/api/auth/request-download`, {
+        fileId: file._id,
+      });
+
+      if (emailSent.status === 200) {
+        // Prompt the user to enter the decryption code before proceeding with the download
+        const phrase = prompt(
+          "Enter the code you received via email for decryption:"
+        );
+
+        if (!phrase) {
+          return;
+        }
+
+        const proceedStatus = await instance.post("/api/auth/validate-phrase", {
+          fileId: file._id,
+          phrase,
+        });
+
+        if (proceedStatus.status === 200) {
+          alert("Decryption successful. Downloading file...");
+        }
+      }
+
+      let url;
+      if (file.filename.includes(".aes")) {
+        url = `/api/file/download`;
+      } else {
+        url = `/api/file/normaldownload`;
+      }
+      const response = await instance.get(url, {
+        params: {
+          fileId: file._id, // Pass fileId as a query parameter
+        },
+        responseType: "blob",
+      });
+
+      const blob = await response.data;
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      if (file.filename.includes(".aes")) {
+        link.download = file.filename.replace(".aes", ""); // Set the default download file name
+      } else {
+        link.download = file.filename;
+      }
+      link.click();
+    } catch (error) {
+      if (error.response.status === 401) {
+        alert(error.response.data.message);
+        return;
+      }
+      alert("Error downloading file. Please try again later.");
     }
-    link.click();
   };
 
   // Logics for sharing files
