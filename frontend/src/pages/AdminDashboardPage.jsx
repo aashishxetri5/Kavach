@@ -5,6 +5,7 @@ import UserManagement from "../components/UserManagement";
 import DashboardSidebar from "../components/DashboardSidebar";
 import UserSettings from "../components/UserSettings";
 import Spinners from "../components/Spinner";
+import ActivityLogs from "../components/ActivityLogs";
 
 const AdminDashboard = () => {
   const [loading, setLoading] = React.useState(true);
@@ -25,6 +26,9 @@ const AdminDashboard = () => {
             <Route path="/" exact element={<UserManagement />} />
             <Route path="" exact element={<UserManagement />} />
             <Route path="user" exact element={<UserManagement />} />
+
+            <Route path="activity-logs" exact element={<ActivityLogs />} />
+            <Route path="activity-logs/" exact element={<ActivityLogs />} />
 
             <Route path="settings" exact element={<UserSettings />} />
             <Route path="settings/" exact element={<UserSettings />} />

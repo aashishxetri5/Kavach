@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
 
 import { BinFileCards } from "../components/BinFileCards";
@@ -8,7 +7,6 @@ import Spinners from "../components/Spinner";
 const Bin = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const cleanTrash = async () => {
     try {
@@ -44,7 +42,6 @@ const Bin = () => {
         console.log(data);
         setFiles(data.data.files);
       } catch (error) {
-        setError(error);
         if (error.response.status === 403) {
           localStorage.removeItem("token");
           window.location.reload();
@@ -68,12 +65,12 @@ const Bin = () => {
             <p className="text-gray-500 mb-0">
               Files in the bin are automatically deleted after 14 days.
             </p>
-            <a
+            <span
               onClick={cleanTrash}
               className=" px-3 rounded-md cursor-pointer link-danger underline"
             >
               Empty Bin
-            </a>
+            </span>
           </div>
         ) : null}
       </div>

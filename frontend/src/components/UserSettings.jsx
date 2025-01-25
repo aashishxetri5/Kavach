@@ -148,7 +148,7 @@ const UserSettings = () => {
   };
 
   return (
-    <div className="mx-12 my-4 select-none">
+    <div className="mx-1 my-4 select-none">
       <h2 className="mt-8 mb-4">Profile Information</h2>
       <form
         onSubmit={handleProfileUpdate}

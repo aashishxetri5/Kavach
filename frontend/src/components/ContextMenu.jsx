@@ -198,7 +198,7 @@ const ContextMenu = ({ file }) => {
       });
 
       if (response.status === 200) {
-        alert("File shared successfully " + selectedFileId);
+        alert(`${file.filename.replace('.aes', '')} shared successfully`);
         handleClose();
       }
     } catch (error) {

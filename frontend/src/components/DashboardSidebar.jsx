@@ -76,6 +76,29 @@ const DashboardSidebar = () => {
             </li>
           )}
 
+          {role === "ADMIN" && (
+            <li className="linkitem">
+              <Link to="activity-logs">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width={24}
+                  height={24}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="none"
+                    stroke="#e74c3c"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 12h.01M4 6h.01M4 18h.01M8 18h2m-2-6h2M8 6h2m4 0h6m-6 6h6m-6 6h6"
+                  ></path>
+                </svg>
+                <span className="ms-2">User Activity</span>
+              </Link>
+            </li>
+          )}
+
           <li className="linkitem">
             <Link to="settings">
               <svg

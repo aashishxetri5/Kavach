@@ -73,7 +73,7 @@ body::-webkit-scrollbar {
 }
 
 .tertiaryBtn {
-  background-color: var(--quinary-color) !important;
+  background-color: var(--tertiary-color) !important;
   color: var(--quinary-color) !important;
 }
 
