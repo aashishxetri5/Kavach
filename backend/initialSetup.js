@@ -17,7 +17,7 @@ async function setupAdminUser() {
       // Create the admin user
       const adminUser = new User({
         fullname: "Admin",
-        email: "admin@gmail.com",
+        email: "csit211812_aashish@achsnepal.edu.np",
         username: "admin",
         password: hashedPassword,
         role: "ADMIN",
